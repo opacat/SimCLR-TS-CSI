@@ -172,3 +172,13 @@ def plot_data(data,data_augm):
 #crop_resize(val.reshape(50,2))
 
 #left2rightFlip(val.reshape(50,2),True)
+
+'''
+Nel caso di dati 1D occorre chiamare prima expand_dims in modo 
+da ottenere una matrice
+'''
+c = np.arange(50)
+print(c.shape)
+c=np.expand_dims(c, axis=1)
+print(c.shape)
+blockout(c, 20) 
