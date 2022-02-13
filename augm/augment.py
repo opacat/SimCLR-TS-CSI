@@ -27,7 +27,7 @@ def apply_augm_xChannel(datas,augmentation):
     return augmented_datas
 
 # Left to right flipping through anti diagonal matrix multiplication
-def left2rightFlip(datas,show_plot=False):
+def left2rightFlip(datas,show_plot=False,feature=0):
     
     datas_ltor = np.array(datas) 
     def _xChannel_left2rightFlip(channel):
@@ -36,13 +36,14 @@ def left2rightFlip(datas,show_plot=False):
          return np.dot(channel,antiDiag_Eye_Matrix)
      
     datas_ltor = apply_augm_xChannel(datas, _xChannel_left2rightFlip )
-    #plots first channel only for now
+
     if show_plot:
-        plot_data(datas[:,0], datas_ltor[:,0]) 
-    
+        plot_data(datas[:,feature], datas_ltor[:,feature]) 
+    return datas_ltor
+
 
 # Interpolation and selection of a sub signal of size dim
-def crop_resize(datas):
+def crop_resize(datas,show_plot=False,feature=0):
     
     datas_cr = np.array(datas)
     def _xChannel_crop_resize(channel):
@@ -62,13 +63,14 @@ def crop_resize(datas):
         return outdata[start:end]
     
     datas_cr = apply_augm_xChannel(datas, _xChannel_crop_resize)
-   
-    plot_data(datas[:,0], datas_cr[:,0]) 
+    if show_plot:
+        plot_data(datas[:,feature], datas_cr[:,feature]) 
     return datas_cr
 
 # Applies random noise to the signal by adding or removing std * p values 
 # where p is drawn from a uniform distribution
-def random_noise(datas,scale=1):
+def random_noise(datas,scale=1,show_plot=False,feature=0):
+    
     dim1 = datas.shape[0]        
     dim2 = datas.shape[1]
     datas_rn = np.array(datas)
@@ -79,12 +81,15 @@ def random_noise(datas,scale=1):
     for chi in range(dim2):
         noise_matrix[chi] = std[chi] * ru[chi]
     datas_rn = datas + (scale* noise_matrix )
-    plot_data(datas[:,0], datas_rn[:,0]) 
+    
+    if show_plot:
+        plot_data(datas[:,feature], datas_rn[:,feature]) 
+    return datas_rn
     
 #              HARD AUGMENTATIONS
 
 # Select a random point and makes the signal zeroed
-def blockout(datas,duration):
+def blockout(datas,duration=10,show_plot=False,feature=0):
     
     dim = datas.shape[0]    
     datas_bo = np.array(datas)
@@ -98,11 +103,13 @@ def blockout(datas,duration):
     
     bo_augmentation = partial(_blockout , start=start, duration=duration)
     datas_bo = apply_augm_xChannel(datas_bo, bo_augmentation)
-    plot_data(datas[:,0], datas_bo[:,0]) 
+     
+    if show_plot:
+        plot_data(datas[:,feature], datas_bo[:,feature]) 
     return datas_bo
     
 # Sum n full sine periods to the signal
-def magnitude_warping(datas,scale,n):
+def magnitude_warping(datas,scale=1,n=2,show_plot=False,feature=0):
     
     datas_mw = np.array(datas)
     def _magnitude_warping(data,scale,n=2):
@@ -120,7 +127,9 @@ def magnitude_warping(datas,scale,n):
     
     mw_augmentation = partial(_magnitude_warping,scale=scale,n=n)
     datas_mw = apply_augm_xChannel(datas_mw, mw_augmentation)
-    plot_data(datas[:,0], datas_mw[:,0]) 
+    
+    if show_plot:
+        plot_data(datas[:,feature], datas_mw[:,feature]) 
     return datas_mw
     
 # Random shuffle of channels
@@ -135,50 +144,18 @@ def plot_data(data,data_augm):
     ax = fig.add_subplot(111)
     plt.plot(x,data)
     plt.plot(x,data_augm)
-    ax.set_xlim([-10, 100])
-    ax.set_ylim([-10, 100])
+    ax.set_xlim([0, 50])
+    ax.set_ylim([-10, 50])
     plt.show()  
 
-#TESTING CODE
-
-#b = np.array([1.,2.,3.,4.,5.,6.,7.,8.,9.])
-#left2rightFlip(b)
-#crop_resize(b)
-#blockout(b, 5)
-#random_noise(b)
-
-#res = magnitude_warping(b,1,5)
-#plot_data(b,res)
-
-#b = b.reshape((3, 3))
-
-#r = permute_channels(b)
-#print(r)
-
-#a = b
-#data = np.ones((100,2))
-
-#random_noise(data,3)           #OK
-#blockout(data, 20)             #OK
-#permute_channels(a)    
-
-#testing C_R OK it works        
-#val = magnitude_warping(data, 1, 4) #OK
-#crop_resize(val)
-
-
-#testing L2R - OK it works
-#val = np.arange(100)
-#crop_resize(val.reshape(50,2))
-
-#left2rightFlip(val.reshape(50,2),True)
 
 '''
 Nel caso di dati 1D occorre chiamare prima expand_dims in modo 
 da ottenere una matrice
-'''
+
 c = np.arange(50)
 print(c.shape)
 c=np.expand_dims(c, axis=1)
 print(c.shape)
 blockout(c, 20) 
+'''
