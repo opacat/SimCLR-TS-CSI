@@ -7,10 +7,11 @@ Created on Sun Feb 13 12:59:09 2022
 
 """
 
-from augment import * 
 import numpy as np
 import random
 import itertools
+
+from augm.augment import * 
 from functools import partial
 
 '''
@@ -36,7 +37,7 @@ soft_augments = { 'L2R' : partial(left2rightFlip,show_plot=True,feature=0),
     
 '''
 hard_augments = { 'BLK' : partial(blockout,duration=10,show_plot=True,feature=0),
-                  'MW'  : partial(magnitude_warping,scale=1,n=2,show_plot=True,feature=0),
+                  'MW'  : partial(magnitude_warping,scale=3,n=2,show_plot=True,feature=0),
                   'PC'  : partial(permute_channels)
                 }
 
@@ -67,16 +68,3 @@ def augmenter(datas, is_hard_augm=False, hard_augm='', is_multiple_augm=False, s
         augm_data = soft_augments[single_augm](augm_data)
     
     return augm_data
-
-
-c = np.arange(50)
-c=np.expand_dims(c, axis=1)
-
-# CR must be checked because of zig zag visualitazion ( it may not be a fault )
-
-#augmenter(datas=c,is_hard_augm=False,multiple_augm=True,soft_order=['CR','RN','L2R'],single_augm='') 
-
-#augmenter(datas=c,is_hard_augm=False,is_multiple_augm=False,soft_order=[],single_augm='CR')
-
-#augmenter(datas=c,is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
- 
