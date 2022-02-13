@@ -1,0 +1,1 @@
+{    "batch_size" : 64,    "window_size" : 100,    "encoder_parameters" : {        "kernel_size_layer1" : 3,        "stride_layer1" : 2,            "kernel_size_layer2" : 3,        "stride_layer2" : 2,            "kernel_size_layer3" : 3,        "stride_layer3" : 1,            "eps" : 0.00001,        "momentum" : 0.1    }    }
