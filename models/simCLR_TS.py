@@ -5,7 +5,7 @@ Created on Sun Feb 13 18:00:38 2022
 
 @author: Nicola Braile - Marianna Del Corso
 """
-
+import tensorflow as tf
 import torch.nn as nn
 
 '''
@@ -19,69 +19,56 @@ import torch.nn as nn
     
 '''
 # This is 
-class Encoder(nn.Module):
+class EncoderLayer(nn.Module):
     
-    def __init__(self,config):
-        super(Encoder, self).__init__()
-        
-        bsz = config['batch_size']
-        wsz = config['window_size']
-        kernel_sz = config['encoder_parameters']['kernel_size_layer1']
-        strd = config['encoder_parameters']['stride_layer1']
-        in_ch = config['encoder_parameters']['in_channels_layer1']
-        out_ch = int(1 + ( wsz - kernel_sz) / strd)
-        print(out_ch)
-                
-        eps = config['encoder_parameters']['eps']
-        momentum = config['encoder_parameters']['momentum']
+    def __init__(self,in_ch, out_ch, kernel_sz, strd,eps,momentum):
+        super(EncoderLayer, self).__init__()
         
         self.encoder_layer = nn.Sequential(
             nn.Conv1d(in_ch, out_ch, kernel_sz, strd),
             nn.ReLU(),
             nn.BatchNorm1d( out_ch , eps, momentum)
         )
-
+    
     def forward(self, inputs):
-        print("\n input fwd ", inputs)
+        self.encoder_layer(inputs) #error here
+        print("\n input fwd ")
     
 
 class SimCLR_TS(nn.Module):
-    '''
-     def __init__(self):
-        super(Encoder, self).__init__()
+    
+    def __init__(self,config):
+        super(SimCLR_TS, self).__init__()
         
-        self.encoder_layer = nn.Sequential(
-            nn.Conv1d( inch , outch, kernel_size, stride= strd),
-            nn.ReLU(),
-            nn.Linear(last_dim, simclr_dim),
+        #    LAYER 1
+        wsz = config['window_size']
+        kernel_sz = config['encoder_parameters']['kernel_size_layer1']
+        strd = config['encoder_parameters']['stride_layer1']
+        in_ch = config['encoder_parameters']['in_channels_layer1']
+        out_ch = int(1 + ( wsz - kernel_sz) / strd)                
+        eps = config['encoder_parameters']['eps']
+        momentum = config['encoder_parameters']['momentum']
+        wsz_out = int((wsz / strd) + 1)
+        
+        #   LAYER 2
+        kernel_sz2 = config['encoder_parameters']['kernel_size_layer2']
+        strd2 = config['encoder_parameters']['stride_layer2']
+        out_ch2 = int(1 + ( wsz_out - kernel_sz2) / strd2)  
+        wsz_out2 = int((wsz_out/strd2) + 1)
+        
+        #   LAYER 3
+        kernel_sz3 = config['encoder_parameters']['kernel_size_layer3']
+        strd3 = config['encoder_parameters']['stride_layer3']
+        out_ch3 = int(1 + ( wsz_out2 - kernel_sz3) / strd3)  
+        
+        self.encoder = nn.Sequential(
+           EncoderLayer(in_ch, out_ch, kernel_sz, strd,eps,momentum),
+           EncoderLayer(out_ch, out_ch2, kernel_sz2, strd2,eps,momentum),
+           EncoderLayer(out_ch2, out_ch3, kernel_sz3, strd3,eps,momentum)
         )
-
     
     def forward(self, inputs, penultimate=False, simclr=False, shift=False, joint=False):
-        _aux = {}
-        _return_aux = False
-
-        output = self.linear(features)
-
-        if penultimate:
-            _return_aux = True
-            _aux['penultimate'] = features
-
-        if simclr:
-            _return_aux = True
-            _aux['simclr'] = self.simclr_layer(features)
-
-        if shift:
-            _return_aux = True
-            _aux['shift'] = self.shift_cls_layer(features)
-
-        if joint:
-            _return_aux = True
-            _aux['joint'] = self.joint_distribution_layer(features)
-
-        if _return_aux:
-            return output, _aux
-
-        return output
-    '''
+        self.encoder(inputs)
+        print("forward SimCLR_TS")
+        
 
