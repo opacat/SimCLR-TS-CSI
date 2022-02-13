@@ -5,7 +5,7 @@ from tensorflow.keras.utils import timeseries_dataset_from_array
 
 data = np.load('dataset/nyc_taxi.npz')
 
-training = data['training'][:50]
+training = data['training'][:150]
 training = np.expand_dims(training, axis=1)
 print(training.shape)
 
@@ -38,8 +38,8 @@ magnitude_warping(training,2,3)
 #augmenter(datas=training,is_hard_augm=False,hard_augm='',is_multiple_augm=False,soft_order=[],single_augm='RN')
 #PASS
 
-#augmenter(datas=training,is_hard_augm=True,hard_augm='MW',is_multiple_augm=False,soft_order=[],single_augm='L2R')
-#PASS
+augmenter(datas=training,is_hard_augm=True,hard_augm='MW',is_multiple_augm=False,soft_order=[],single_augm='L2R')
+#PASS 
 
 #augmenter(datas=training,is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
 #PASS

@@ -140,12 +140,12 @@ def permute_channels(data):
     
 def plot_data(data,data_augm):
     fig = plt.figure()
-    x= np.arange(50)
+    timestamps = data.shape[0]
+    x = np.arange(timestamps)
     ax = fig.add_subplot(111)
     plt.plot(x,data)
     plt.plot(x,data_augm)
-    ax.set_xlim([0, 50])
-    ax.set_ylim([-10, 50])
+    ax.set_xlim([0, timestamps])
     plt.show()  
 
 
