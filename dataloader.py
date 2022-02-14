@@ -20,11 +20,11 @@ class TimeseriesDataset(torch.utils.data.Dataset):
         if(self.y):
             return (self.X[index:index+self.seq_len], self.y[index+self.seq_len-1])
         else:
-            return (self.X[index:index+self.seq_len])
+            return (self.X[index:index+self.seq_len]).transpose()
 
 def dataloader(dataset_file, config):
     data = np.load(dataset_file)
-    train = data['training']
+    train = data['training'].astype('float32')
     train = np.expand_dims(train, axis=1)
     config['encoder_parameters']['in_channels_layer1'] = train.shape[1]
 

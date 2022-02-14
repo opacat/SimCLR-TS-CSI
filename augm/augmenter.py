@@ -23,9 +23,9 @@ from functools import partial
     RN   ->  Random Noise
     
 '''
-soft_augments = { 'L2R' : partial(left2rightFlip,show_plot=True,feature=0),
-                  'CR'  : partial(crop_resize,show_plot=True,feature=0),
-                  'RN'  : partial(random_noise,scale=1,show_plot=True,feature=0)
+soft_augments = { 'L2R' : partial(left2rightFlip,show_plot=False,feature=0),
+                  'CR'  : partial(crop_resize,show_plot=False,feature=0),
+                  'RN'  : partial(random_noise,scale=1,show_plot=False,feature=0)
                 }
 
 '''
@@ -36,8 +36,8 @@ soft_augments = { 'L2R' : partial(left2rightFlip,show_plot=True,feature=0),
     PC   ->  Permute Channels
     
 '''
-hard_augments = { 'BLK' : partial(blockout,duration=10,show_plot=True,feature=0),
-                  'MW'  : partial(magnitude_warping,scale=3,n=2,show_plot=True,feature=0),
+hard_augments = { 'BLK' : partial(blockout,duration=10,show_plot=False,feature=0),
+                  'MW'  : partial(magnitude_warping,scale=3,n=2,show_plot=False,feature=0),
                   'PC'  : partial(permute_channels)
                 }
 

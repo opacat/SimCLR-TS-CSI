@@ -7,6 +7,7 @@ Created on Sun Feb 13 18:00:38 2022
 """
 import tensorflow as tf
 import torch.nn as nn
+import torch
 
 '''
     Feature Extractor ( Encoder )
@@ -21,9 +22,9 @@ import torch.nn as nn
 # This is 
 class EncoderLayer(nn.Module):
     
-    def __init__(self,in_ch, out_ch, kernel_sz, strd,eps,momentum):
+    def __init__(self,in_ch, out_ch, kernel_sz, strd,eps,momentum,name):
         super(EncoderLayer, self).__init__()
-        
+        self.name = name
         self.encoder_layer = nn.Sequential(
             nn.Conv1d(in_ch, out_ch, kernel_sz, strd),
             nn.ReLU(),
@@ -31,8 +32,9 @@ class EncoderLayer(nn.Module):
         )
     
     def forward(self, inputs):
-        self.encoder_layer(inputs) #error here
-        print("\n input fwd ")
+        #print( self.name, ' ' ,inputs)
+        print( self.name)
+        return self.encoder_layer(inputs)
     
 
 class SimCLR_TS(nn.Module):
@@ -62,13 +64,15 @@ class SimCLR_TS(nn.Module):
         out_ch3 = int(1 + ( wsz_out2 - kernel_sz3) / strd3)  
         
         self.encoder = nn.Sequential(
-           EncoderLayer(in_ch, out_ch, kernel_sz, strd,eps,momentum),
-           EncoderLayer(out_ch, out_ch2, kernel_sz2, strd2,eps,momentum),
-           EncoderLayer(out_ch2, out_ch3, kernel_sz3, strd3,eps,momentum)
+           EncoderLayer(in_ch, out_ch, kernel_sz, strd,eps,momentum,'enc1'),
+           EncoderLayer(out_ch, out_ch2, kernel_sz2, strd2,eps,momentum,'enc2'),
+           EncoderLayer(out_ch2, out_ch3, kernel_sz3, strd3,eps,momentum,'enc3')
         )
     
     def forward(self, inputs, penultimate=False, simclr=False, shift=False, joint=False):
-        self.encoder(inputs)
-        print("forward SimCLR_TS")
+        #print(inputs.type())
+        #print("forward SimCLR_TS")
+
+        return self.encoder(inputs)
         
 

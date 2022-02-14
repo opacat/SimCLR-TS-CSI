@@ -12,7 +12,6 @@ train = data['training']
 train = np.expand_dims(train, axis=1)
 print(train.shape)
 '''
-
 '''
 #TESTING CODE for Augmenter
 #Notes:
@@ -27,11 +26,30 @@ augmenter(datas=training,is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True
 #PASS
 '''
 
+#augmenter(datas=training,is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
+
+
 config = get_config_json('config.json')
 
 loader = dataloader('dataset/nyc_taxi.npz', config)
 
+'''
+for batch, i in zip(loader, range(1)):
+    print('batch : ',batch.shape)
+    for t,j in zip(batch, range(1)):
+        augmenter(datas=t.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
+'''
+
 model = SimCLR_TS(config)
 
+x=[]
 for batchdata in loader:
-    model(batchdata)
+    # augment all batch
+    for t in batchdata:
+        z = augmenter(datas=t.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
+        x.append(z.transpose())
+    
+    #print(np.array(x).shape)
+    
+    tmp = torch.tensor(np.array(x), dtype=torch.float32)
+    model(tmp)
