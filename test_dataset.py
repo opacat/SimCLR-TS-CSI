@@ -45,11 +45,12 @@ model = SimCLR_TS(config)
 x=[]
 for batchdata in loader:
     # augment all batch
+    #TODO il batch va sdoppiato prima di applicare le augmentations
     for t in batchdata:
         z = augmenter(datas=t.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
         x.append(z.transpose())
     
-    #print(np.array(x).shape)
+    print(np.array(x).shape)
     
-    tmp = torch.tensor(np.array(x), dtype=torch.float32)
-    model(tmp)
+    #tmp = torch.tensor(np.array(x), dtype=torch.float32)
+    #model(tmp)

@@ -6,6 +6,7 @@ Created on Sun Feb 13 22:42:13 2022
 """
 import numpy as np
 import torch
+from utils import build_TEP_dataset
 
 class TimeseriesDataset(torch.utils.data.Dataset):
     def __init__(self, X, y=None, seq_len=1):
@@ -22,10 +23,15 @@ class TimeseriesDataset(torch.utils.data.Dataset):
         else:
             return (self.X[index:index+self.seq_len]).transpose()
 
+
 def dataloader(dataset_file, config):
+    '''
+    # NAB
     data = np.load(dataset_file)
     train = data['training'].astype('float32')
     train = np.expand_dims(train, axis=1)
+    '''
+    train, y_train, test, y_test = build_TEP_dataset()
     config['encoder_parameters']['in_channels_layer1'] = train.shape[1]
 
     train_dataset = TimeseriesDataset(train, seq_len=100)
