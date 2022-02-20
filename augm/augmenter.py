@@ -51,9 +51,8 @@ hard_augments = { 'BLK' : partial(blockout,duration=10,show_plot=False,feature=0
 def augmenter(datas, is_hard_augm=False, hard_augm='', is_multiple_augm=False, soft_order=['L2R','CR','RN'],single_augm=''):
     #orders = list(itertools.permutations(['L2R', 'CR', 'RN'])) //this liine is for final traing and must be moved from here
     
-    def _random_apply_augment(transformation, data ,augm,p=0.5):
+    def _random_apply_augment(transformation, data, p=0.5):
         prob = np.random.uniform(low=0.0, high=1.0, size=None)
-        print('Applying ',augm,' augmentation : ', prob < p)
         return transformation(data) if prob < p else data
     
     augm_data = np.array(datas)
@@ -67,7 +66,7 @@ def augmenter(datas, is_hard_augm=False, hard_augm='', is_multiple_augm=False, s
         #for all augmentations
         for aug_pos in range( len(soft_order)):
             #apply each one in a random way  
-            augm_data = _random_apply_augment(soft_augments[soft_order[aug_pos]],augm_data,soft_order[aug_pos])
+            augm_data = _random_apply_augment(soft_augments[soft_order[aug_pos]],augm_data)
     else:
         #apply a single augmentation in particular the one stated in single_augm
         augm_data = soft_augments[single_augm](augm_data)

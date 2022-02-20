@@ -17,7 +17,6 @@ import torch
             LeakyRELU
             BatchNorm    
         }
-    
 '''
 # This is 
 class EncoderLayer(nn.Module):
@@ -32,7 +31,6 @@ class EncoderLayer(nn.Module):
         )
     
     def forward(self, inputs):
-        #print( self.name, ' ' ,inputs)
         print( self.name)
         return self.encoder_layer(inputs)
     
@@ -50,29 +48,43 @@ class SimCLR_TS(nn.Module):
         out_ch = int(1 + ( wsz - kernel_sz) / strd)                
         eps = config['encoder_parameters']['eps']
         momentum = config['encoder_parameters']['momentum']
-        wsz_out = int((wsz / strd) + 1)
+        wsz_out = int(( (wsz - 3) / strd) + 1)
         
         #   LAYER 2
         kernel_sz2 = config['encoder_parameters']['kernel_size_layer2']
         strd2 = config['encoder_parameters']['stride_layer2']
         out_ch2 = int(1 + ( wsz_out - kernel_sz2) / strd2)  
-        wsz_out2 = int((wsz_out/strd2) + 1)
+        wsz_out2 = int(((wsz_out - 3)/strd2) + 1)
         
         #   LAYER 3
         kernel_sz3 = config['encoder_parameters']['kernel_size_layer3']
         strd3 = config['encoder_parameters']['stride_layer3']
         out_ch3 = int(1 + ( wsz_out2 - kernel_sz3) / strd3)  
+        wsz_out3 = int(((wsz_out2 - 3)/strd3) + 1)
         
         self.encoder = nn.Sequential(
            EncoderLayer(in_ch, out_ch, kernel_sz, strd,eps,momentum,'enc1'),
            EncoderLayer(out_ch, out_ch2, kernel_sz2, strd2,eps,momentum,'enc2'),
            EncoderLayer(out_ch2, out_ch3, kernel_sz3, strd3,eps,momentum,'enc3')
         )
+        
+        #   Classification layer
+        ''' 
+        This classifier is used to measure augmentation accuracy on TEP Dataset.
+        We use it to understand if multiple augmentation improve or not.
+        '''        
+        self.augm_cls_linear = nn.Linear(out_ch3 * wsz_out3, 22) #for TEP there are 22 classes 
     
     def forward(self, inputs, penultimate=False, simclr=False, shift=False, joint=False):
         #print(inputs.type())
         #print("forward SimCLR_TS")
 
-        return self.encoder(inputs)
+        features = self.encoder(inputs)
         
+        # this must be called only when Pretrain is complete 
+        if tep_linear:
+            features = torch.flatten(features, start_dim=1)
+            return self.augm_cls_linear(features)
+        else:
+            return features
 
