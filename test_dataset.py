@@ -4,6 +4,7 @@ from models.simCLR_TS import *
 from augm.augment import *
 from augm.augmenter import *
 import torch
+from torch.optim import Adam, lr_scheduler
 from dataloader import *
 
 '''
@@ -40,19 +41,25 @@ for batch, i in zip(loader, range(1)):
         augmenter(datas=t.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
 '''
 
+
+
 model = SimCLR_TS(config)
 
-print('type loader ',type(loader))
+# Optimizer
+optimizer = Adam(model.parameters())
+# Scheduler
+scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
+
 x=[]
 for batchdata in loader:
     #print('batch type ', type(batchdata))
     # augment all batch
     #TODO il batch va sdoppiato prima di applicare le augmentations
-    for t in batchdata:
-        z = augmenter(datas=t.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
+    for window in batchdata:
+        z = augmenter(datas=window.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
         x.append(z.transpose())
 
-    print(np.array(x).shape)
+    #print(np.array(x).shape)
 
-    #tmp = torch.tensor(np.array(x), dtype=torch.float32)
-    #model(tmp)
+    tmp = torch.tensor(np.array(x), dtype=torch.float32)
+    model(tmp)
