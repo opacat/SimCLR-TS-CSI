@@ -1,4 +1,4 @@
 .DS_Store
-
+.spyproject
 __pycache__
 models/__pycache__
