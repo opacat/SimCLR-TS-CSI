@@ -32,7 +32,9 @@ class EncoderLayer(nn.Module):
 
     def forward(self, inputs):
         print( self.name)
-        return self.encoder_layer(inputs)
+        x = self.encoder_layer(inputs)
+        print(x.size() )
+        return x
 
 
 class SimCLR_TS(nn.Module):
@@ -45,27 +47,22 @@ class SimCLR_TS(nn.Module):
         kernel_sz = config['encoder_parameters']['kernel_size_layer1']
         strd = config['encoder_parameters']['stride_layer1']
         in_ch = config['encoder_parameters']['in_channels_layer1']
-        out_ch = int(1 + ( wsz - kernel_sz) / strd)
+        
         eps = config['encoder_parameters']['eps']
         momentum = config['encoder_parameters']['momentum']
-        wsz_out = int(( (wsz - 3) / strd) + 1)
-
+        
         #   LAYER 2
         kernel_sz2 = config['encoder_parameters']['kernel_size_layer2']
         strd2 = config['encoder_parameters']['stride_layer2']
-        out_ch2 = int(1 + ( wsz_out - kernel_sz2) / strd2)
-        wsz_out2 = int(((wsz_out - 3)/strd2) + 1)
-
+        
         #   LAYER 3
         kernel_sz3 = config['encoder_parameters']['kernel_size_layer3']
         strd3 = config['encoder_parameters']['stride_layer3']
-        out_ch3 = int(1 + ( wsz_out2 - kernel_sz3) / strd3)
-        wsz_out3 = int(((wsz_out2 - 3)/strd3) + 1)
-
+        
         self.encoder = nn.Sequential(
-           EncoderLayer(in_ch, out_ch, kernel_sz, strd,eps,momentum,'enc1'),
-           EncoderLayer(out_ch, out_ch2, kernel_sz2, strd2,eps,momentum,'enc2'),
-           EncoderLayer(out_ch2, out_ch3, kernel_sz3, strd3,eps,momentum,'enc3')
+           EncoderLayer(in_ch, 64, kernel_sz, strd,eps,momentum,'enc1'),
+           EncoderLayer(64, 128, kernel_sz2, strd2,eps,momentum,'enc2'),
+           EncoderLayer(128, 256, kernel_sz3, strd3,eps,momentum,'enc3')
         )
 
         #   Classification layer
@@ -73,7 +70,7 @@ class SimCLR_TS(nn.Module):
         This classifier is used to measure augmentation accuracy on TEP Dataset.
         We use it to understand if multiple augmentation improve or not.
         '''
-        self.augm_cls_linear = nn.Linear(out_ch3 * wsz_out3, 22) #for TEP there are 22 classes
+        self.augm_cls_linear = nn.Linear(256*22 , 22) #for TEP there are 22 classes
 
     def forward(self, inputs, penultimate=False, simclr=False, shift=False, tep_linear=False):
         #print(inputs.type())

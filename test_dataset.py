@@ -6,6 +6,7 @@ from augm.augmenter import *
 import torch
 from torch.optim import Adam, lr_scheduler
 from dataloader import *
+from metrics import *
 
 '''
 data = np.load('dataset/nyc_taxi.npz')
@@ -27,21 +28,9 @@ augmenter(datas=training,is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True
 #PASS
 '''
 
-#augmenter(datas=training,is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
-
-
 config = get_config_json('config.json')
 
 loader = dataloader('dataset/NAB/nyc_taxi.npz', config)
-
-'''
-for batch, i in zip(loader, range(1)):
-    print('batch : ',batch.shape)
-    for t,j in zip(batch, range(1)):
-        augmenter(datas=t.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
-'''
-
-
 
 model = SimCLR_TS(config)
 
@@ -50,8 +39,10 @@ optimizer = Adam(model.parameters())
 # Scheduler
 scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
 
-x=[]
+# Apply One Epoch 
+
 for batchdata in loader:
+    x=[]
     #print('batch type ', type(batchdata))
     # augment all batch
     #TODO il batch va sdoppiato prima di applicare le augmentations
@@ -59,7 +50,18 @@ for batchdata in loader:
         z = augmenter(datas=window.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
         x.append(z.transpose())
 
-    #print(np.array(x).shape)
-
     tmp = torch.tensor(np.array(x), dtype=torch.float32)
-    model(tmp)
+    print(tmp.size())
+    
+    output = model(tmp)
+    print(output.size())
+    
+    sim_mat = get_sim_matrix(output)
+    loss = NT_xent(sim_mat)
+    
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    
+    print('loss = ',loss.item())
+    
