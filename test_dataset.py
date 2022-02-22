@@ -39,11 +39,14 @@ optimizer = Adam(model.parameters())
 # Scheduler
 scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
 
-# Apply One Epoch 
+# Apply One Epoch
 
+loss_list =[]
 for batchdata in loader:
     x=[]
-    #print('batch type ', type(batchdata))
+
+    batchdata = batchdata.repeat(2,1,1)
+    #print(batchdata.size)
     # augment all batch
     #TODO il batch va sdoppiato prima di applicare le augmentations
     for window in batchdata:
@@ -51,17 +54,23 @@ for batchdata in loader:
         x.append(z.transpose())
 
     tmp = torch.tensor(np.array(x), dtype=torch.float32)
-    print(tmp.size())
-    
+    #print(tmp.size())
+
     output = model(tmp)
-    print(output.size())
-    
+
+    output = torch.flatten(output, start_dim=1)
+    #print(output.size())
+
     sim_mat = get_sim_matrix(output)
     loss = NT_xent(sim_mat)
-    
+
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
-    
-    print('loss = ',loss.item())
-    
+
+    loss_list.append(loss.item())
+
+print(loss_list)
+fig = plt.figure()
+plt.plot(loss_list)
+plt.show()

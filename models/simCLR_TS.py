@@ -31,9 +31,9 @@ class EncoderLayer(nn.Module):
         )
 
     def forward(self, inputs):
-        print( self.name)
+        #print( self.name)
         x = self.encoder_layer(inputs)
-        print(x.size() )
+        #print(x.size() )
         return x
 
 
@@ -47,18 +47,18 @@ class SimCLR_TS(nn.Module):
         kernel_sz = config['encoder_parameters']['kernel_size_layer1']
         strd = config['encoder_parameters']['stride_layer1']
         in_ch = config['encoder_parameters']['in_channels_layer1']
-        
+
         eps = config['encoder_parameters']['eps']
         momentum = config['encoder_parameters']['momentum']
-        
+
         #   LAYER 2
         kernel_sz2 = config['encoder_parameters']['kernel_size_layer2']
         strd2 = config['encoder_parameters']['stride_layer2']
-        
+
         #   LAYER 3
         kernel_sz3 = config['encoder_parameters']['kernel_size_layer3']
         strd3 = config['encoder_parameters']['stride_layer3']
-        
+
         self.encoder = nn.Sequential(
            EncoderLayer(in_ch, 64, kernel_sz, strd,eps,momentum,'enc1'),
            EncoderLayer(64, 128, kernel_sz2, strd2,eps,momentum,'enc2'),
