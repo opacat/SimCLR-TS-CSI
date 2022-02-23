@@ -19,7 +19,7 @@ class Checkpoint:
        self.save_dir = save_dir
        self.save_to_disk = save_to_disk
 
-    def save(self, name, **kwargs):
+    def save(self, name, **args):
        if not self.save_dir:
            return
 
@@ -33,7 +33,7 @@ class Checkpoint:
            data["optimizer"] = self.optimizer.state_dict()
        if self.scheduler is not None:
            data["scheduler"] = self.scheduler.state_dict()
-       data.update(kwargs)
+       data.update(args)
 
        save_file = os.path.join(self.save_dir, "{}.pth".format(name))
        torch.save(data, save_file)
