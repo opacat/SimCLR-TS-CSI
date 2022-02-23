@@ -33,7 +33,6 @@ augmenter(datas=training,is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True
 
 logger_warmup('Logger1')
 log = logging.getLogger('Logger1')
-print(log.handlers)
 
 config = get_config_json('config.json')
 
@@ -51,22 +50,20 @@ ckp = Checkpoint(model, optimizer, scheduler, 'checkpoints/')
 extra_ckp = ckp.load()
 args.update(extra_ckp)
 
-#log.log(logging.DEBUG,'I topini non aveno nipotini',args)
-#log.log(logging.INFO,'Le lame non avevano la lama',args)
-
-log.info('Message Info')
-log.debug('Message Debug Info')
+#log.info('Message Info')
+#log.debug('Message Debug Info')
 
 epochs = config['epochs']
 epochs_cls = config['epochs_cls']
 start_epoch = args['start_epoch']
-# Apply One Epoch
-loss_list =[]
 
+
+loss_list =[]
 for epoch in range(start_epoch,epochs):
     #for each batch 
     for batchdata in loader:
         x=[]
+        
         batchdata = batchdata.repeat(2,1,1)
         #print(batchdata.size)
         # augment all batch
@@ -91,7 +88,23 @@ for epoch in range(start_epoch,epochs):
         optimizer.step()
     
         loss_list.append(loss.item())
-   
+    
+    #Every 2 epochs write on log
+    if epoch % 2:
+        logger.info( meters.delimiter.join([
+                            "iter: {iter:06d}",
+                            "lr: {lr:.5f}",
+                            '{meters}',
+                            "eta: {eta}",
+                            'mem: {mem}M',
+                        ]).format(
+                            iter=iteration,
+                            lr=optimizer.param_groups[0]['lr'],
+                            meters=str(meters),
+                            eta=eta_string,
+                            mem=round(torch.cuda.max_memory_allocated() / 1024.0 / 1024.0),
+                        ))
+    
     # Save checkpoint every 10 epochs
     if epoch%10==0:
         args['start_epoch'] = epoch
