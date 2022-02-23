@@ -1,5 +1,6 @@
 import numpy as np
-from utils import *
+from utils.utils import *
+from utils.checkpoint import *
 from models.simCLR_TS import *
 from augm.augment import *
 from augm.augmenter import *
@@ -39,9 +40,11 @@ optimizer = Adam(model.parameters())
 # Scheduler
 scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
 
+ckp = Checkpoint(model, optimizer, scheduler, 'checkpoints/')
 # Apply One Epoch
 
 loss_list =[]
+i=0
 for batchdata in loader:
     x=[]
 
@@ -69,8 +72,12 @@ for batchdata in loader:
     optimizer.step()
 
     loss_list.append(loss.item())
+    if i%10==0:
+        kwargs={}
+        kwargs['loss']='test save'
+        ckp.save('name', **kwargs)
+    i=i+1
 
-print(loss_list)
 fig = plt.figure()
 plt.plot(loss_list)
 plt.show()

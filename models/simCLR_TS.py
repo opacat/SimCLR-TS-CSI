@@ -31,7 +31,7 @@ class EncoderLayer(nn.Module):
         )
 
     def forward(self, inputs):
-        #print( self.name)
+        print( self.name)
         x = self.encoder_layer(inputs)
         #print(x.size() )
         return x

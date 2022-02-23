@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, ToTensor
-from utils import build_TEP_dataset
+from utils.utils import build_TEP_dataset
 
 class TimeseriesDataset(torch.utils.data.Dataset):
     def __init__(self, X, y=None, seq_len=1):
