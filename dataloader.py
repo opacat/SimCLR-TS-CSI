@@ -42,14 +42,16 @@ def dataloader(dataset_name, config):
         data = np.load('dataset/NAB/nyc_taxi.npz')
         train = data['training'].astype('float32')
         train = np.expand_dims(train, axis=1)
-
+    # TEP
     elif dataset_name == 'TEP':
         train, y_train, test, y_test = build_TEP_dataset()
-        config['encoder_parameters']['in_channels_layer1'] = train.shape[1]
 
-        train_dataset = TimeseriesDataset(X=train, y=y_train)
-        test_dataset = TimeseriesDataset(X=test, y=y_test)
+    config['encoder_parameters']['in_channels_layer1'] = train.shape[1]
 
-        train_loader = DataLoader(train_dataset, batch_size = 64, shuffle = False)
-        test_loader = DataLoader(test_dataset, batch_size = 64, shuffle=False)
+    train_dataset = TimeseriesDataset(X=train, y=y_train)
+    test_dataset = TimeseriesDataset(X=test, y=y_test)
+
+    train_loader = DataLoader(train_dataset, batch_size = 64, shuffle = False)
+    test_loader = DataLoader(test_dataset, batch_size = 64, shuffle=False)
+
     return train_loader, test_loader

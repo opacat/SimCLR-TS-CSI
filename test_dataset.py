@@ -36,7 +36,7 @@ log = logging.getLogger('Logger1')
 
 config = get_config_json('config.json')
 
-loader = dataloader('dataset/NAB/nyc_taxi.npz', config)
+train_loader, test_loader = dataloader('TEP', config) # NAB, TEP
 
 model = SimCLR_TS(config)
 
@@ -63,13 +63,13 @@ start_epoch = args['start_epoch']
 loss_list =[]
 for epoch in range(start_epoch,epochs):
     #for each batch
-    for batchdata in loader:
+    for batchdata,_ in train_loader:
         x=[]
 
         batchdata = batchdata.repeat(2,1,1)
         # augment all batch
         for window in batchdata:
-            z = augmenter(datas=window.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
+            z = augmenter(datas=window,is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
             x.append(z.transpose())
 
         tmp = torch.tensor(np.array(x), dtype=torch.float32)
