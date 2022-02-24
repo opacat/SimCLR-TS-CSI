@@ -11,14 +11,11 @@ from torchvision.transforms import Compose, ToTensor
 from utils.utils import build_TEP_dataset
 
 class TimeseriesDataset(torch.utils.data.Dataset):
-    def __init__(self, X, y=None, seq_len=1):
+    def __init__(self, X, y=None, seq_len=100):
 
-        #print(X.dtypes)
-        #self.X = np.squeeze(np.array([X], dtype=(np.float32)))
         self.X = torch.tensor(X.values)
-        #print(self.X.dtype)
-        if y:
-            self.y = torch.tensor(y.values)
+        if y is not None:
+            self.y = torch.tensor(y)
         else:
             self.y = y
 
@@ -32,22 +29,27 @@ class TimeseriesDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         start = index
         end = start + self.seq_len
-        if(self.y):
-            return (self.X[start:end], self.y[end-1])
+        if(self.y is not None):
+            return self.X[start:end], self.y[end-1]
         else:
             return self.X[start:end].transpose(1,0)
 
 
-def dataloader(dataset_file, config):
-    '''
-    # NAB
-    data = np.load(dataset_file)
-    train = data['training'].astype('float32')
-    train = np.expand_dims(train, axis=1)
-    '''
-    train, y_train, test, y_test = build_TEP_dataset()
-    config['encoder_parameters']['in_channels_layer1'] = train.shape[1]
+def dataloader(dataset_name, config):
 
-    train_dataset = TimeseriesDataset(train, seq_len=100)
-    loader = DataLoader(train_dataset, batch_size = 64, shuffle = False)
-    return loader
+    # NAB
+    if dataset_name == 'NAB':
+        data = np.load('dataset/NAB/nyc_taxi.npz')
+        train = data['training'].astype('float32')
+        train = np.expand_dims(train, axis=1)
+
+    elif dataset_name == 'TEP':
+        train, y_train, test, y_test = build_TEP_dataset()
+        config['encoder_parameters']['in_channels_layer1'] = train.shape[1]
+
+        train_dataset = TimeseriesDataset(X=train, y=y_train)
+        test_dataset = TimeseriesDataset(X=test, y=y_test)
+
+        train_loader = DataLoader(train_dataset, batch_size = 64, shuffle = False)
+        test_loader = DataLoader(test_dataset, batch_size = 64, shuffle=False)
+    return train_loader, test_loader

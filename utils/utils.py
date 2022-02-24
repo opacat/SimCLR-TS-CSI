@@ -23,23 +23,19 @@ def build_TEP_dataset():
         return res
 
     # Concatenate TEP training/test .dat files
-    def _concat_files(is_training=True):
+    def _concat_files(is_training=True, postfix=''):
 
         dataset_list = []
         dims = []
         path = 'dataset/TEP/'
         for i in range(22):
-            if is_training:
-                file_name = path + 'd' + "{:02d}".format(i) + '.dat'
-            else:
-                file_name = path + 'd' + "{:02d}".format(i) + '_te.dat'
-
+            file_name = path + 'd' + "{:02d}".format(i) + postfix + '.dat'
             x = _get_dat_file(file_name)
             # first training files has wrong format
             if i==0 and is_training:
                 x = x.transpose()
 
-            # skip first 160 rows of test files
+            # skip first 160 rows of test files 1 to 22
             if i>0 and not is_training:
                 x = x.iloc[160:,:]
 
@@ -47,7 +43,7 @@ def build_TEP_dataset():
             dims.append(x.shape[0])
             dataset_list.append(x)
 
-        return dims, pd.concat(dataset_list)
+        return  pd.concat(dataset_list), dims
 
     # Build labels
     def _get_labels(sizes, rows):
@@ -61,11 +57,11 @@ def build_TEP_dataset():
 
 
     # read training files and get training labels
-    train_sizes, train_dataset = _concat_files()
+    train_dataset, train_sizes = _concat_files()
     train_labels = _get_labels(train_sizes, train_dataset.shape[0])
 
     # read test files and get test labels
-    test_sizes, test_dataset = _concat_files(is_training=False)
+    test_dataset, test_sizes = _concat_files(is_training=False, postfix='_te')
     test_labels = _get_labels(test_sizes, test_dataset.shape[0])
 
     return train_dataset, train_labels, test_dataset, test_labels
