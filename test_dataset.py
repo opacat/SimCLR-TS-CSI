@@ -40,6 +40,8 @@ loader = dataloader('dataset/NAB/nyc_taxi.npz', config)
 
 model = SimCLR_TS(config)
 
+meters = MetricLogger()
+
 # Optimizer
 optimizer = Adam(model.parameters())
 # Scheduler
@@ -60,56 +62,50 @@ start_epoch = args['start_epoch']
 
 loss_list =[]
 for epoch in range(start_epoch,epochs):
-    #for each batch 
+    #for each batch
     for batchdata in loader:
         x=[]
-        
+
         batchdata = batchdata.repeat(2,1,1)
-        #print(batchdata.size)
         # augment all batch
-        #TODO il batch va sdoppiato prima di applicare le augmentations
         for window in batchdata:
             z = augmenter(datas=window.transpose(1,0),is_hard_augm=True,hard_augm='BLK',is_multiple_augm=True,soft_order=['RN','CR','L2R'],single_augm='')
             x.append(z.transpose())
-    
+
         tmp = torch.tensor(np.array(x), dtype=torch.float32)
         #print(tmp.size())
-    
+
         output = model(tmp)
-    
+
         output = torch.flatten(output, start_dim=1)
         #print(output.size())
-    
+
         sim_mat = get_sim_matrix(output)
         loss = NT_xent(sim_mat)
-    
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-    
+
         loss_list.append(loss.item())
-    
-    #Every 2 epochs write on log
-    if epoch % 2:
-        logger.info( meters.delimiter.join([
-                            "iter: {iter:06d}",
-                            "lr: {lr:.5f}",
-                            '{meters}',
-                            "eta: {eta}",
-                            'mem: {mem}M',
-                        ]).format(
-                            iter=iteration,
-                            lr=optimizer.param_groups[0]['lr'],
-                            meters=str(meters),
-                            eta=eta_string,
-                            mem=round(torch.cuda.max_memory_allocated() / 1024.0 / 1024.0),
-                        ))
-    
+        meters.update(loss = loss.item())
+
+    #At the end of epoch, log all information
+    log.info( meters.delimiter.join([
+                        "epoch: {epoch:03d}",
+                        "lr: {lr:.5f}",
+                        '{meters}',
+                    ]).format(
+                        epoch=epoch,
+                        lr=optimizer.param_groups[0]['lr'],
+                        meters=str(meters),
+                    ))
+
     # Save checkpoint every 10 epochs
     if epoch%10==0:
         args['start_epoch'] = epoch
         ckp.save('model_pretrain_{:03d}'.format(epoch), **args)
-    
+
 
 #for epoch in range(epochs_cls):
     #training for classifier ( 22 classes )

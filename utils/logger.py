@@ -15,21 +15,21 @@ import torch
 from collections import deque, defaultdict
 
 def logger_warmup(name,save_dir='logger_data'):
-    
+
     if not path.exists(save_dir):
         os.mkdir(save_dir)
-    
+
     logger = logging.getLogger(name)
-    
+
     if not logger.hasHandlers():
         formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s")
-        
-        if save_dir:            
+
+        if save_dir:
             file_handler = logging.FileHandler(os.path.join(save_dir, 'log.txt'))
             file_handler.setLevel(logging.INFO)
             file_handler.setFormatter(formatter)
             logger.addHandler(file_handler)
-    
+
         logger.setLevel(logging.DEBUG)
         stream_handler = logging.StreamHandler(stream=sys.stdout)
         stream_handler.setLevel(logging.DEBUG)
@@ -56,11 +56,6 @@ class SmoothedValue:
         self.value = value
 
     @property
-    def median(self):
-        values = np.array(self.deque)
-        return np.median(values)
-
-    @property
     def avg(self):
         values = np.array(self.deque)
         return np.mean(values)
@@ -79,7 +74,7 @@ class MetricLogger:
         for k, v in kwargs.items():
             if isinstance(v, torch.Tensor):
                 v = v.item()
-            print(type(v))
+            #print(type(v))
             assert isinstance(v, (float, int))
             self.meters[k].update(v)
 
@@ -100,22 +95,17 @@ class MetricLogger:
         return self.delimiter.join(loss_str)
 
 
-    
+'''
 x = MetricLogger()
 data = 4
 
-dictn = { 'data1': 1,'data2':100,'data1':4}
+dictn =  { 'data1': 1,'data2':100}
 dictn2 = { 'data1': 10,'data2':103}
 dictn3 = { 'data1': 20,'data2':102}
 dictn4 = { 'data1': 15,'data2':120}
 
 x.update(**dictn)
 x.update(**dictn2)
-x.update(**dictn3)
-x.update(**dictn)
-
-x.update(data=data)
-x.update(data=data+1)
-x.update(data=10)
 
 print(x)
+'''
