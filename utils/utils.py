@@ -8,6 +8,11 @@ Created on Sun Feb 13 18:53:06 2022
 import json
 import pandas as pd
 import numpy as np
+from itertools import chain, combinations
+
+def all_combinations(ss):
+    return chain(*map(lambda x: combinations(ss, x), range(2, len(ss)+1)))
+
 
 # Load all config parameters
 def get_config_json(json_file):
@@ -64,5 +69,5 @@ def build_TEP_dataset():
     test_dataset, test_sizes = _concat_files(is_training=False, postfix='_te')
     test_labels = _get_labels(test_sizes, test_dataset.shape[0])
 
-    return train_dataset, train_labels, test_dataset, test_labels
-
+    return train_dataset, train_labels, test_dataset, test_labels       
+    

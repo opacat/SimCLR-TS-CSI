@@ -72,7 +72,7 @@ class SimCLR_TS(nn.Module):
         '''
         self.augm_cls_linear = nn.Linear(256*22 , 22) #for TEP there are 22 classes
 
-    def forward(self, inputs, penultimate=False, simclr=False, shift=False, tep_linear=False):
+    def forward(self, inputs, tep_linear=False):
         #print(inputs.type())
         #print("forward SimCLR_TS")
 

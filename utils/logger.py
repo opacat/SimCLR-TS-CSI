@@ -95,17 +95,3 @@ class MetricLogger:
         return self.delimiter.join(loss_str)
 
 
-'''
-x = MetricLogger()
-data = 4
-
-dictn =  { 'data1': 1,'data2':100}
-dictn2 = { 'data1': 10,'data2':103}
-dictn3 = { 'data1': 20,'data2':102}
-dictn4 = { 'data1': 15,'data2':120}
-
-x.update(**dictn)
-x.update(**dictn2)
-
-print(x)
-'''
