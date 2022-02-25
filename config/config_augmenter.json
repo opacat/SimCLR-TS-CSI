@@ -1,0 +1,1 @@
+{    "is_hard_augm" : false,    "hard_augm_list" : ["BLK", "MW", "PC"],    "is_multiple_augm" : false,    "soft_augm_list" : ["RN", "CR", "L2R"],    "hard_augm" : "",    "soft_augm" : ""}
