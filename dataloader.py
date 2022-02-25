@@ -32,7 +32,7 @@ class TimeseriesDataset(torch.utils.data.Dataset):
         if(self.y is not None):
             return self.X[start:end], self.y[end-1]
         else:
-            return self.X[start:end].transpose(1,0)
+            return self.X[start:end], []
 
 
 def dataloader(dataset_name, config):
