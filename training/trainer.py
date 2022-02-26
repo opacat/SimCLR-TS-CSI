@@ -11,7 +11,7 @@ from utils.logger import logger_warmup, MetricLogger
 from metrics import get_sim_matrix, NT_xent
 from augm.augmenter import augment_batch
 from utils.checkpoint import Checkpoint
-from dataloader import dataloader
+from dataloader import Dataloader
 from models.simCLR_TS import SimCLR_TS
 
 import numpy as np
@@ -19,53 +19,53 @@ import itertools
 import logging
 import torch
 from torch.optim import Adam, lr_scheduler
-    
+
 logger_warmup('Logger_')
 log = logging.getLogger('Logger_')
 
 def training_warmup(config):
-    
-    train_loader, test_loader = dataloader('TEP', config['NET']) # NAB, TEP
+
+    dataloader = Dataloader('TEP', config['NET']) # NAB, TEP
+    train_loader = dataloader.train_loader()
     model = SimCLR_TS(config['NET'])
-    
+
     # Optimizer
     optimizer = Adam(model.parameters())
-    
+
     # Scheduler
     scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
-    
+
     args = {'start_epoch' : 0}
-    
+
     ckp = Checkpoint(model, optimizer, scheduler, 'checkpoints/')
     # Load checkpoint, if exists. extra_ckp contains other important information like epoch number
     extra_ckp = ckp.load()
     args.update(extra_ckp)
-    
+
     train_dict={}
     train_dict.update(model=model)
     train_dict.update(optimizer=optimizer)
     train_dict.update(scheduler=scheduler)
     train_dict.update(train_loader=train_loader)
-    train_dict.update(test_loader=test_loader)
     train_dict.update(args=args)
     train_dict.update(ckp=ckp)
-    
+
     config.update(TRAINING = train_dict)
-     
+
 def train_single_soft_augm(config):
-    
+
     for s_a in config['AUGMENTER']['soft_augm_list']:
-        
+
         config['AUGMENTER']['soft_augm'] = s_a
         log.info("Start pre-training single soft augmentation : {}".format(config['AUGMENTER']['soft_augm']))
         if config['AUGMENTER']['is_hard_augm']:
             log.info("with hard augmentation : {}".format(config['AUGMENTER']['hard_augm']))
-        
-        #crea dentro config la chiave Training con tutti i parametri di cui ha bisogno 
+
+        #crea dentro config la chiave Training con tutti i parametri di cui ha bisogno
         training_warmup(config)
-        
+
         pre_train(config)
-        
+
         log.info("Start training... ")
         cls_train(config)
 
@@ -81,14 +81,14 @@ def train_multiple_soft_augm(config):
 
             # Setting a certain permutation
             config['AUGMENTER']['soft_augm_list'] = perm
-            
+
             log.info("Start pre-training multiple soft augmentations : {} ".format(perm))
             if config['AUGMENTER']['is_hard_augm']:
                 log.info("with hard augmentation : {}".format(config['AUGMENTER']['hard_augm']))
-            
+
             training_warmup(config)
             pre_train(config)
-            
+
             log.info("Start training... ")
             cls_train(config)
 
@@ -114,7 +114,7 @@ def pre_train(config):
     train_loader = config['TRAINING']['train_loader']
     ckp = config['TRAINING']['ckp']
     meters = MetricLogger()
-    
+
     start_epoch = args['start_epoch']
     for epoch in range(start_epoch, epochs):
 
@@ -169,7 +169,7 @@ def cls_train(config):
     epochs_cls = config['NET']['epochs_cls']
     model = config['TRAINING']['model']
     train_loader = config['TRAINING']['train_loader']
-    
+
     # Fine tuning on fault classification
     for epoch in range(epochs_cls):
         for batchdata, _ in train_loader:
