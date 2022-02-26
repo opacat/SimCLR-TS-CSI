@@ -25,7 +25,7 @@ log = logging.getLogger('Logger_')
 
 def training_warmup(config):
 
-    dataloader = Dataloader('TEP', config['NET']) # NAB, TEP
+    dataloader = Dataloader(config['NET'])
     train_loader = dataloader.train_loader()
     model = SimCLR_TS(config['NET'])
 

@@ -32,7 +32,8 @@ class TimeseriesDataset(torch.utils.data.Dataset):
             return self.X[start:end], []
 
 class Dataloader:
-    def __init__(self, dataset_name, config):
+    def __init__(self, config):
+        dataset_name = config['dataset']
         # NAB
         if dataset_name == 'NAB':
             data = np.load('dataset/NAB/nyc_taxi.npz')
