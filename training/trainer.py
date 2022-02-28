@@ -19,6 +19,7 @@ import itertools
 import logging
 import torch
 from torch.optim import Adam, lr_scheduler
+import torch.nn as nn
 
 logger_warmup('Logger_')
 log = logging.getLogger('Logger_')
@@ -29,11 +30,15 @@ def training_warmup(config):
     train_loader = dataloader.train_loader()
     model = SimCLR_TS(config['NET'])
 
-    # Optimizer
-    optimizer = Adam(model.parameters())
-
+    # Optimizers
+    optimizer = Adam(model.encoder.parameters())
+    linear_optimizer = Adam(model.cls_linear.parameters())
+    
     # Scheduler
     scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
+    
+    # Linear loss criterion
+    criterion = nn.CrossEntropyLoss()
 
     args = {'start_epoch' : 0}
 
@@ -45,6 +50,8 @@ def training_warmup(config):
     train_dict={}
     train_dict.update(model=model)
     train_dict.update(optimizer=optimizer)
+    train_dict.update(linear_optimizer=linear_optimizer)
+    train_dict.update(criterion=criterion)
     train_dict.update(scheduler=scheduler)
     train_dict.update(train_loader=train_loader)
     train_dict.update(args=args)
@@ -61,7 +68,7 @@ def train_single_soft_augm(config):
         if config['AUGMENTER']['is_hard_augm']:
             log.info("with hard augmentation : {}".format(config['AUGMENTER']['hard_augm']))
 
-        #crea dentro config la chiave Training con tutti i parametri di cui ha bisogno
+        # crea dentro config la chiave TRAINING con tutti i parametri di cui ha bisogno
         training_warmup(config)
 
         pre_train(config)
@@ -115,10 +122,11 @@ def pre_train(config):
     ckp = config['TRAINING']['ckp']
     meters = MetricLogger()
 
+    model.train()
+    loss_list = []
     start_epoch = args['start_epoch']
     for epoch in range(start_epoch, epochs):
 
-        loss_list = []
         # for each batch
         for batchdata, _ in train_loader:
 
@@ -162,6 +170,7 @@ def pre_train(config):
         if epoch % 10 == 0:
             args['start_epoch'] = epoch
             ckp.save('model_pretrain_{:03d}'.format(epoch), **args)
+            config['TRAINING'].update(model=model)
 
 
 def cls_train(config):
@@ -169,9 +178,26 @@ def cls_train(config):
     epochs_cls = config['NET']['epochs_cls']
     model = config['TRAINING']['model']
     train_loader = config['TRAINING']['train_loader']
-
+    criterion = config['TRAINING']['criterion']
+    linear_optimizer = config['TRAINING']['linear_optimizer']
+    scheduler = config['TRAINING']['scheduler']
+   
+    model.train()
+    # Freeze first part of the model
+    for param in model.encoder.parameters():
+        param.requires_grad = False
+        
+    loss_list = []
     # Fine tuning on fault classification
     for epoch in range(epochs_cls):
-        for batchdata, _ in train_loader:
+        for batchdata, labels in train_loader:
 
-            cls_output = model(batchdata, True)
+            cls_output = model(batchdata, False) # pretrain=False
+            loss_linear = criterion(cls_output, labels)
+            
+            linear_optimizer.zero_grad()
+            loss_linear.backward()
+            linear_optimizer.step()
+            loss_list.append(loss_linear.item())
+            
+        scheduler.step()
