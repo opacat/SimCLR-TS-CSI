@@ -13,6 +13,7 @@ import sys
 import numpy as np
 import torch
 from collections import deque, defaultdict
+import matplotlib.pyplot as plt
 
 def logger_warmup(name,save_dir='logger_data'):
 
@@ -97,4 +98,12 @@ class MetricLogger:
             self.loss_list.append(global_avg)
         return self.delimiter.join(loss_str)
 
+    def plot_loss(self):
+        fig = plt.figure()
+        timestamps = len(self.loss_list)
+        x = np.arange(timestamps)
+        ax = fig.add_subplot(111)
+        plt.plot(x,self.loss_list)
+        ax.set_xlim([0, timestamps])
+        plt.show()
 

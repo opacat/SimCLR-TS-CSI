@@ -41,12 +41,12 @@ hard_augments = {'BLK': partial(blockout, duration=10, show_plot=False, feature=
 
 '''
     This function applies soft augmentations and optionally hard ones too.
-    For soft augmentations it is possible to apply only one 
+    For soft augmentations it is possible to apply only one
     or a series of augmentations as specified in soft_augm_list (with a certain probability ) .
 '''
 
 def augmenter(datas, is_hard_augm=False, hard_augm='', is_multiple_augm=False, soft_augm_list=['L2R', 'CR', 'RN'], soft_augm=''):
-   
+
     def _random_apply_augment(transformation, data, p=0.5):
         prob = np.random.uniform(low=0.0, high=1.0, size=None)
         return transformation(data) if prob < p else data
@@ -71,33 +71,33 @@ def augmenter(datas, is_hard_augm=False, hard_augm='', is_multiple_augm=False, s
     return augm_data
 
 def augment_batch(batchdata,config):
-    '''    
+    '''
     Parameters
     ----------
     batchdata : Batch of TS .
-    config : Contains the current setting for the augmentations to be applied. These 
+    config : Contains the current setting for the augmentations to be applied. These
     info can be updated in config/config_augmenter.json
-    
+
     Returns
     -------
     For each window of the batch applies the proper augmentation.
     Returns the augmented batch.
-    
+
     Note
     -------
-    This function must be called after the batch has been doubled. 
+    This function must be called after the batch has been doubled.
     '''
-    
+
     aug_datas = []
     # augment all batch
     for window in batchdata:
-        z = augmenter(datas=window, 
-                      is_hard_augm=config['is_hard_augm'], 
+        z = augmenter(datas=window.transpose(1,0),
+                      is_hard_augm=config['is_hard_augm'],
                       hard_augm=config['hard_augm'],        # The chosen hard augm
-                      is_multiple_augm=config['is_multiple_augm'], 
+                      is_multiple_augm=config['is_multiple_augm'],
                       soft_augm_list=config['soft_augm_list'],  # The chosen permutation of soft augm
                       soft_augm=config['soft_augm'])        # The chosen soft augm
-        
+
         aug_datas.append(z.transpose())
 
     return torch.tensor(np.array(aug_datas), dtype=torch.float32)

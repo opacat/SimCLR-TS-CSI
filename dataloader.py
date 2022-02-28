@@ -14,7 +14,7 @@ class TimeseriesDataset(torch.utils.data.Dataset):
 
         self.X = torch.tensor(X.values)
         if y is not None:
-            self.y = torch.tensor(y)
+            self.y = torch.tensor(y, dtype=torch.long)
         else:
             self.y = y
 
@@ -27,7 +27,7 @@ class TimeseriesDataset(torch.utils.data.Dataset):
         start = index
         end = start + self.seq_len
         if(self.y is not None):
-            return self.X[start:end], self.y[end-1]
+            return self.X[start:end].transpose(1,0), self.y[end-1].squeeze()
         else:
             return self.X[start:end], []
 

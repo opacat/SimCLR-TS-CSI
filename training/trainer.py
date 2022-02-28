@@ -23,7 +23,7 @@ import torch.nn as nn
 
 logger_warmup('Logger_')
 log = logging.getLogger('Logger_')
-
+device = torch.device(f"cuda" if torch.cuda.is_available() else "cpu")
 
 def training_warmup(config):
 
@@ -128,6 +128,7 @@ def pre_train(config):
     ckp = config['TRAINING']['ckp']
     meters = MetricLogger()
 
+    model.to(device)
     model.train()
     loss_list = []
     start_epoch = args['start_epoch']
@@ -138,7 +139,7 @@ def pre_train(config):
 
             # Double the batch
             batchdata = batchdata.repeat(2, 1, 1)
-
+            batchdata.to(device)
             # Applies data augmentation
             augmented_batch = augment_batch(batchdata, config['AUGMENTER'])
 
@@ -175,8 +176,11 @@ def pre_train(config):
         # Save checkpoint every 10 epochs
         if epoch % 10 == 0:
             args['start_epoch'] = epoch
+            args['meters'] = meters
             ckp.save('model_pretrain_{:03d}'.format(epoch), **args)
             config['TRAINING'].update(model=model)
+
+    meters.plot_loss()
 
 
 def cls_train(config):
@@ -187,7 +191,10 @@ def cls_train(config):
     criterion = config['TRAINING']['criterion']
     linear_optimizer = config['TRAINING']['linear_optimizer']
     scheduler = config['TRAINING']['scheduler']
+    ckp = config['TRAINING']['ckp']
 
+    model.to(device)
+    criterion.to(device)
     model.train()
     # Freeze first part of the model
     for param in model.encoder.parameters():
@@ -197,7 +204,8 @@ def cls_train(config):
     # Fine tuning on fault classification
     for epoch in range(epochs_cls):
         for batchdata, labels in train_loader:
-
+            batchdata.to(device)
+            labels.to(device)
             cls_output = model(batchdata, False)  # pretrain=False
             loss_linear = criterion(cls_output, labels)
 
@@ -207,4 +215,5 @@ def cls_train(config):
             loss_list.append(loss_linear.item())
 
         scheduler.step()
-        
+
+    ckp.save('model_train_aug_{}'.format( config['AUGMENTER']['soft_augm']))
