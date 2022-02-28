@@ -24,6 +24,7 @@ import torch.nn as nn
 logger_warmup('Logger_')
 log = logging.getLogger('Logger_')
 
+
 def training_warmup(config):
 
     dataloader = Dataloader(config['NET'])
@@ -33,21 +34,21 @@ def training_warmup(config):
     # Optimizers
     optimizer = Adam(model.encoder.parameters())
     linear_optimizer = Adam(model.cls_linear.parameters())
-    
+
     # Scheduler
     scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
-    
+
     # Linear loss criterion
     criterion = nn.CrossEntropyLoss()
 
-    args = {'start_epoch' : 0}
+    args = {'start_epoch': 0}
 
     ckp = Checkpoint(model, optimizer, scheduler, 'checkpoints/')
     # Load checkpoint, if exists. extra_ckp contains other important information like epoch number
     extra_ckp = ckp.load()
     args.update(extra_ckp)
 
-    train_dict={}
+    train_dict = {}
     train_dict.update(model=model)
     train_dict.update(optimizer=optimizer)
     train_dict.update(linear_optimizer=linear_optimizer)
@@ -57,16 +58,19 @@ def training_warmup(config):
     train_dict.update(args=args)
     train_dict.update(ckp=ckp)
 
-    config.update(TRAINING = train_dict)
+    config.update(TRAINING=train_dict)
+
 
 def train_single_soft_augm(config):
 
     for s_a in config['AUGMENTER']['soft_augm_list']:
 
         config['AUGMENTER']['soft_augm'] = s_a
-        log.info("Start pre-training single soft augmentation : {}".format(config['AUGMENTER']['soft_augm']))
+        log.info(
+            "Start pre-training single soft augmentation : {}".format(config['AUGMENTER']['soft_augm']))
         if config['AUGMENTER']['is_hard_augm']:
-            log.info("with hard augmentation : {}".format(config['AUGMENTER']['hard_augm']))
+            log.info("with hard augmentation : {}".format(
+                config['AUGMENTER']['hard_augm']))
 
         # crea dentro config la chiave TRAINING con tutti i parametri di cui ha bisogno
         training_warmup(config)
@@ -89,9 +93,11 @@ def train_multiple_soft_augm(config):
             # Setting a certain permutation
             config['AUGMENTER']['soft_augm_list'] = perm
 
-            log.info("Start pre-training multiple soft augmentations : {} ".format(perm))
+            log.info(
+                "Start pre-training multiple soft augmentations : {} ".format(perm))
             if config['AUGMENTER']['is_hard_augm']:
-                log.info("with hard augmentation : {}".format(config['AUGMENTER']['hard_augm']))
+                log.info("with hard augmentation : {}".format(
+                    config['AUGMENTER']['hard_augm']))
 
             training_warmup(config)
             pre_train(config)
@@ -181,23 +187,24 @@ def cls_train(config):
     criterion = config['TRAINING']['criterion']
     linear_optimizer = config['TRAINING']['linear_optimizer']
     scheduler = config['TRAINING']['scheduler']
-   
+
     model.train()
     # Freeze first part of the model
     for param in model.encoder.parameters():
         param.requires_grad = False
-        
+
     loss_list = []
     # Fine tuning on fault classification
     for epoch in range(epochs_cls):
         for batchdata, labels in train_loader:
 
-            cls_output = model(batchdata, False) # pretrain=False
+            cls_output = model(batchdata, False)  # pretrain=False
             loss_linear = criterion(cls_output, labels)
-            
+
             linear_optimizer.zero_grad()
             loss_linear.backward()
             linear_optimizer.step()
             loss_list.append(loss_linear.item())
-            
+
         scheduler.step()
+        

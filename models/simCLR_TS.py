@@ -32,7 +32,7 @@ class EncoderLayer(nn.Module):
         )
 
     def forward(self, inputs):
-        print(self.name)
+        #print(self.name)
         x = self.encoder_layer(inputs)
         # print(x.size() )
         return x
@@ -73,7 +73,7 @@ class SimCLR_TS(nn.Module):
         '''
         self.cls_linear = nn.Linear(256*22, 22)  # for TEP there are 22 classes
 
-    def forward(self, inputs, pretrain=False):
+    def forward(self, inputs, pretrain=True):
         # print(inputs.type())
         # print("forward SimCLR_TS")
 

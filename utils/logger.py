@@ -41,7 +41,7 @@ class SmoothedValue:
     window or the global series average.
     """
 
-    def __init__(self, window_size=10):
+    def __init__(self, window_size=64):
         self.deque = deque(maxlen=window_size)
         self.value = np.nan
         self.series = []
@@ -69,6 +69,7 @@ class MetricLogger:
     def __init__(self, delimiter=", "):
         self.meters = defaultdict(SmoothedValue)
         self.delimiter = delimiter
+        self.loss_list = []
 
     def update(self, **kwargs):
         for k, v in kwargs.items():
@@ -89,9 +90,11 @@ class MetricLogger:
     def __str__(self):
         loss_str = []
         for name, meter in self.meters.items():
+            global_avg = meter.global_avg
             loss_str.append(
-                "{}: {:.3f} ({:.3f})".format(name, meter.avg, meter.global_avg)
+                "{}: {:.3f} ({:.3f})".format(name, meter.avg, global_avg)
             )
+            self.loss_list.append(global_avg)
         return self.delimiter.join(loss_str)
 
 
