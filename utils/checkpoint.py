@@ -14,7 +14,7 @@ class Checkpoint:
     #_last_checkpoint_name = 'last_checkpoint.txt'
 
     def __init__(self, name, model, optimizer=None, scheduler=None, save_dir="", save_to_disk=True):
-        
+
         self.name = name
         self.last_checkpoint_name = name+'_last_checkpoint.txt'
         self.model = model
@@ -41,12 +41,12 @@ class Checkpoint:
 
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
-        
+
         if not os.path.exists(self.save_dir+'/'+self.name):
             os.mkdir(self.save_dir+'/'+self.name)
-            
+
         save_file = os.path.join(self.save_dir+'/'+self.name, "{}.pth".format(name))
-            
+
         torch.save(data, save_file)
 
         self.tag_last_checkpoint(save_file)
@@ -90,6 +90,8 @@ class Checkpoint:
         return os.path.exists(save_file)
 
     def tag_last_checkpoint(self, last_filename):
+        if last_filename.find('aug') >= 0:
+            return
         save_file = os.path.join(self.save_dir+'/'+self.name, self.last_checkpoint_name)
         with open(save_file, "w") as f:
             f.write(last_filename)
