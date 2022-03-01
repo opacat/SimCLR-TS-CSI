@@ -29,7 +29,7 @@ def training_warmup(config):
 
     dataloader = Dataloader(config['NET'])
     train_loader = dataloader.train_loader()
-    model = SimCLR_TS(config['NET'])
+    model = SimCLR_TS(config['NET']).to(device)
 
     # Optimizers
     optimizer = Adam(model.encoder.parameters())
@@ -120,7 +120,7 @@ def train_multiple_soft_augm_with_hard_augm(config):
 
 def pre_train(config):
     epochs = config['NET']['epochs']
-    model = config['TRAINING']['model'].to(device)
+    model = config['TRAINING']['model']
     optimizer = config['TRAINING']['optimizer']
     scheduler = config['TRAINING']['scheduler']
     args = config['TRAINING']['args']
