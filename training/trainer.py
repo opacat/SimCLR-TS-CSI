@@ -138,10 +138,10 @@ def pre_train(config):
         for batchdata, _ in train_loader:
 
             # Double the batch
-            batchdata = batchdata.repeat(2, 1, 1).to(device)
+            batchdata = batchdata.repeat(2, 1, 1)
             #batchdata.to(device)
             # Applies data augmentation
-            augmented_batch = augment_batch(batchdata, config['AUGMENTER'])
+            augmented_batch = augment_batch(batchdata, config['AUGMENTER']).to(device)
 
             output = model(augmented_batch)
 
