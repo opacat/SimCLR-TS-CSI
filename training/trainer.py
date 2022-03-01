@@ -176,7 +176,6 @@ def pre_train(config):
         # Save checkpoint every 10 epochs
         if epoch % 10 == 0:
             args['start_epoch'] = epoch
-            args['meters'] = meters
             ckp.save('model_pretrain_{:03d}'.format(epoch), **args)
             config['TRAINING'].update(model=model)
 
