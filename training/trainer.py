@@ -43,7 +43,7 @@ def training_warmup(config):
 
     args = {'start_epoch': 0}
 
-    ckp = Checkpoint(model, optimizer, scheduler, 'checkpoints/')
+    ckp = Checkpoint(config['name'], model, optimizer, scheduler, 'checkpoints/')
     # Load checkpoint, if exists. extra_ckp contains other important information like epoch number
     extra_ckp = ckp.load()
     args.update(extra_ckp)
@@ -62,15 +62,18 @@ def training_warmup(config):
 
 
 def train_single_soft_augm(config):
-
+    name_conf = 'SSA_'
     for s_a in config['AUGMENTER']['soft_augm_list']:
-
+        name_conf = name_conf+s_a
         config['AUGMENTER']['soft_augm'] = s_a
         log.info(
             "Start pre-training single soft augmentation : {}".format(config['AUGMENTER']['soft_augm']))
         if config['AUGMENTER']['is_hard_augm']:
+            name_conf = name_conf+'_'+config['AUGMENTER']['hard_augm']
             log.info("with hard augmentation : {}".format(
                 config['AUGMENTER']['hard_augm']))
+        
+        config.update(name=name_conf)
 
         # crea dentro config la chiave TRAINING con tutti i parametri di cui ha bisogno
         training_warmup(config)
@@ -89,16 +92,19 @@ def train_multiple_soft_augm(config):
         soft_perm = np.array(list(itertools.permutations(soft_comb)))
 
         for perm in soft_perm:
-
+            
+            name_conf = '_'.join(perm)
             # Setting a certain permutation
             config['AUGMENTER']['soft_augm_list'] = perm
 
             log.info(
                 "Start pre-training multiple soft augmentations : {} ".format(perm))
             if config['AUGMENTER']['is_hard_augm']:
+                name_conf = name_conf+'_'+config['AUGMENTER']['hard_augm']
                 log.info("with hard augmentation : {}".format(
                     config['AUGMENTER']['hard_augm']))
 
+            config.update(name=name_conf)
             training_warmup(config)
             pre_train(config)
 
@@ -133,11 +139,9 @@ def pre_train(config):
     loss_list = []
     start_epoch = args['start_epoch']
     for epoch in range(start_epoch, epochs):
-        print('epoch: ', epoch)
-
+        
         # for each batch
         for batchdata, _ in train_loader:
-            print('batchdata')    
             # Double the batch
             batchdata = batchdata.repeat(2, 1, 1)
             
@@ -175,12 +179,12 @@ def pre_train(config):
         ))
 
         # Save checkpoint every 10 epochs
-        if epoch % 10 == 0:
+        if epoch % config['NET']['save_epoch'] == 0 and epoch > 0:
             args['start_epoch'] = epoch
             ckp.save('model_pretrain_{:03d}'.format(epoch), **args)
             config['TRAINING'].update(model=model)
 
-    meters.plot_loss()
+    meters.plot_loss(config['name'])
 
 
 def cls_train(config):

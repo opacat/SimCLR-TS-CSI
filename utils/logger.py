@@ -98,12 +98,17 @@ class MetricLogger:
             self.loss_list.append(global_avg)
         return self.delimiter.join(loss_str)
 
-    def plot_loss(self):
+    def plot_loss(self, name):
+        if not path.exists('plots/'):
+            os.mkdir('plots/')
+        
         fig = plt.figure()
         timestamps = len(self.loss_list)
         x = np.arange(timestamps)
         ax = fig.add_subplot(111)
         plt.plot(x,self.loss_list)
         ax.set_xlim([0, timestamps])
+        
+        plt.savefig('plots/'+name+'.png') 
         plt.show()
 

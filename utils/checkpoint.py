@@ -6,14 +6,17 @@ Created on Tue Feb 22 21:50:18 2022
 """
 import os
 import torch
+import logging
 
-
+log = logging.getLogger('Logger_')
 class Checkpoint:
 
-    _last_checkpoint_name = 'last_checkpoint.txt'
+    #_last_checkpoint_name = 'last_checkpoint.txt'
 
-    def __init__(self, model, optimizer=None, scheduler=None, save_dir="", save_to_disk=True):
-
+    def __init__(self, name, model, optimizer=None, scheduler=None, save_dir="", save_to_disk=True):
+        
+        self.name = name
+        self.last_checkpoint_name = name+'_last_checkpoint.txt'
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
@@ -38,8 +41,11 @@ class Checkpoint:
 
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
+        
+        if not os.path.exists(self.save_dir+'/'+self.name):
+            os.mkdir(self.save_dir+'/'+self.name)
             
-        save_file = os.path.join(self.save_dir, "{}.pth".format(name))
+        save_file = os.path.join(self.save_dir+'/'+self.name, "{}.pth".format(name))
             
         torch.save(data, save_file)
 
@@ -49,8 +55,10 @@ class Checkpoint:
         if self.has_checkpoint() and use_latest:
             # override argument with existing checkpoint
             f = self.get_checkpoint_file()
+            log.info('Loading from checkpoint {}...'.format(f))
         if not f:
             # no checkpoint could be found
+            log.info('No checkpoint found.')
             return {}
 
         checkpoint = self._load_file(f)
@@ -66,7 +74,7 @@ class Checkpoint:
         return checkpoint
 
     def get_checkpoint_file(self):
-        save_file = os.path.join(self.save_dir, self._last_checkpoint_name)
+        save_file = os.path.join(self.save_dir+'/'+self.name, self.last_checkpoint_name)
         try:
             with open(save_file, "r") as f:
                 last_saved = f.read()
@@ -78,11 +86,11 @@ class Checkpoint:
         return last_saved
 
     def has_checkpoint(self):
-        save_file = os.path.join(self.save_dir, self._last_checkpoint_name)
+        save_file = os.path.join(self.save_dir+'/'+self.name, self.last_checkpoint_name)
         return os.path.exists(save_file)
 
     def tag_last_checkpoint(self, last_filename):
-        save_file = os.path.join(self.save_dir, self._last_checkpoint_name)
+        save_file = os.path.join(self.save_dir+'/'+self.name, self.last_checkpoint_name)
         with open(save_file, "w") as f:
             f.write(last_filename)
 
