@@ -120,7 +120,7 @@ def train_multiple_soft_augm_with_hard_augm(config):
 
 def pre_train(config):
     epochs = config['NET']['epochs']
-    model = config['TRAINING']['model']
+    model = config['TRAINING']['model'].to(device)
     optimizer = config['TRAINING']['optimizer']
     scheduler = config['TRAINING']['scheduler']
     args = config['TRAINING']['args']
@@ -128,7 +128,7 @@ def pre_train(config):
     ckp = config['TRAINING']['ckp']
     meters = MetricLogger()
 
-    model.to(device)
+   # model.to(device)
     model.train()
     loss_list = []
     start_epoch = args['start_epoch']
@@ -138,8 +138,8 @@ def pre_train(config):
         for batchdata, _ in train_loader:
 
             # Double the batch
-            batchdata = batchdata.repeat(2, 1, 1)
-            batchdata.to(device)
+            batchdata = batchdata.repeat(2, 1, 1).to(device)
+            #batchdata.to(device)
             # Applies data augmentation
             augmented_batch = augment_batch(batchdata, config['AUGMENTER'])
 
@@ -186,15 +186,15 @@ def pre_train(config):
 def cls_train(config):
     log.info("Start training classifier...")
     epochs_cls = config['NET']['epochs_cls']
-    model = config['TRAINING']['model']
+    model = config['TRAINING']['model'].to(device)
     train_loader = config['TRAINING']['train_loader']
-    criterion = config['TRAINING']['criterion']
+    criterion = config['TRAINING']['criterion'].to(device)
     linear_optimizer = config['TRAINING']['linear_optimizer']
     scheduler = config['TRAINING']['scheduler']
     ckp = config['TRAINING']['ckp']
 
-    model.to(device)
-    criterion.to(device)
+    #model.to(device)
+    #criterion.to(device)
     model.train()
     # Freeze first part of the model
     for param in model.encoder.parameters():
@@ -204,8 +204,8 @@ def cls_train(config):
     # Fine tuning on fault classification
     for epoch in range(epochs_cls):
         for batchdata, labels in train_loader:
-            batchdata.to(device)
-            labels.to(device)
+            batchdata = batchdata.to(device)
+            labels = labels.to(device)
             cls_output = model(batchdata, False)  # pretrain=False
             loss_linear = criterion(cls_output, labels)
 
