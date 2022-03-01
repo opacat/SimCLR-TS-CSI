@@ -133,13 +133,14 @@ def pre_train(config):
     loss_list = []
     start_epoch = args['start_epoch']
     for epoch in range(start_epoch, epochs):
+        print('epoch: ', epoch)
 
         # for each batch
         for batchdata, _ in train_loader:
-
+            print('batchdata')    
             # Double the batch
             batchdata = batchdata.repeat(2, 1, 1)
-            #batchdata.to(device)
+            
             # Applies data augmentation
             augmented_batch = augment_batch(batchdata, config['AUGMENTER']).to(device)
 
