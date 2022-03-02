@@ -190,7 +190,7 @@ def pre_train(config):
         ))
 
         # Save checkpoint every 10 epochs
-        if epoch % config['NET']['save_epoch'] == 0 and epoch > 0:
+        if (epoch+1) % config['NET']['save_epoch'] == 0 and epoch > 0:
             args['start_epoch'] = epoch
 
             if epoch == epochs-1:

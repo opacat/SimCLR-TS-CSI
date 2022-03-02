@@ -46,7 +46,7 @@ class Checkpoint:
             os.mkdir(self.save_dir+'/'+self.name)
 
         save_file = os.path.join(self.save_dir+'/'+self.name, "{}.pth".format(name))
-
+        log.info('Saving checkpoint {}'.format(save_file))
         torch.save(data, save_file)
 
         self.tag_last_checkpoint(save_file)
