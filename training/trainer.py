@@ -20,6 +20,7 @@ import logging
 import torch
 from torch.optim import Adam, lr_scheduler
 import torch.nn as nn
+import time
 
 logger_warmup('Logger_')
 log = logging.getLogger('Logger_')
@@ -41,9 +42,9 @@ def training_warmup(config):
     # Linear loss criterion
     criterion = nn.CrossEntropyLoss()
 
-    args = {'start_epoch': 0, 'augm_done':[]}
+    args = {'start_epoch': 0, 'augm_done':[], 'meters':None}
 
-    ckp = Checkpoint(config['name'], model, optimizer, scheduler, 'checkpoints/')
+    ckp = Checkpoint(config['name'], model, optimizer, scheduler, 'checkpoints')
     # Load checkpoint, if exists. extra_ckp contains other important information like epoch number
     extra_ckp = ckp.load()
     args.update(extra_ckp)
@@ -143,21 +144,31 @@ def pre_train(config):
     args = config['TRAINING']['args']
     train_loader = config['TRAINING']['train_loader']
     ckp = config['TRAINING']['ckp']
-    meters = MetricLogger()
+    if args['meters']:
+        print('Meters recuperato!')
+        meters = args['meters']
+    else:
+        print('no meters')
+        meters = MetricLogger()
 
    # model.to(device)
     model.train()
     loss_list = []
     start_epoch = args['start_epoch']
     for epoch in range(start_epoch, epochs):
+        #start_time = time.time()
 
         # for each batch
-        for batchdata, _ in train_loader:
+        for batchdata,_ in train_loader:
             # Double the batch
             batchdata = batchdata.repeat(2, 1, 1)
+            start_epoch = args['start_epoch']
 
+            #start_time = time.time()
             # Applies data augmentation
             augmented_batch = augment_batch(batchdata, config['AUGMENTER']).to(device)
+            #print("--- Augment Batch execution time : %s seconds ---" % (time.time() - start_time))
+
 
             output = model(augmented_batch)
 
@@ -176,6 +187,8 @@ def pre_train(config):
 
             loss_list.append(loss.item())
             meters.update(loss=loss.item())
+        
+        #print("--- Epoch execution time : %s seconds ---" % (time.time() - start_time))
 
         scheduler.step()
         # At the end of epoch, log all information
@@ -191,12 +204,14 @@ def pre_train(config):
 
         # Save checkpoint every 10 epochs
         if (epoch+1) % config['NET']['save_epoch'] == 0 and epoch > 0:
-            args['start_epoch'] = epoch
+            args['start_epoch'] = epoch+1
+            args.update(meters=meters)
 
             if epoch == epochs-1:
                 args['augm_done'].append(config['name'])
                 #print('last epoch ',args['augm_done'])
             ckp.save('model_pretrain_{:03d}'.format(epoch), **args)
+            
             config['TRAINING'].update(model=model)
 
     meters.plot_loss(config['name'])

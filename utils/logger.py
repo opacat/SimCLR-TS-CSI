@@ -79,15 +79,7 @@ class MetricLogger:
             #print(type(v))
             assert isinstance(v, (float, int))
             self.meters[k].update(v)
-
-    def __getattr__(self, attr):
-        if attr in self.meters:
-            return self.meters[attr]
-        if attr in self.__dict__:
-            return self.__dict__[attr]
-        raise AttributeError("'{}' object has no attribute '{}'".format(
-            type(self).__name__, attr))
-
+    
     def __str__(self):
         loss_str = []
         for name, meter in self.meters.items():

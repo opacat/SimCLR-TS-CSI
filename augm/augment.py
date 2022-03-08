@@ -12,6 +12,8 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 from functools import partial
+import time
+
 
 '''
  The input matrix has T rows and M columns where:
@@ -20,10 +22,13 @@ from functools import partial
 '''
 
 def apply_augm_xChannel(datas,augmentation):
+    
     augmented_datas = np.array(datas)
     channels = datas.shape[1]
+    
     for chi in range(channels):
-       augmented_datas[:,chi] = augmentation(datas[:,chi])
+       res = augmentation(datas[:,chi])
+       augmented_datas[:,chi] = res
     return augmented_datas
 
 # Left to right flipping through anti diagonal matrix multiplication
@@ -43,7 +48,8 @@ def left2rightFlip(datas,show_plot=False,feature=0):
 
 
 # Interpolation and selection of a sub signal of size dim
-def crop_resize(datas,show_plot=False,feature=0):
+def crop_resize(datas,show_plot=True,feature=0):
+    #start_time = time.time()
     
     datas_cr = np.array(datas)
     def _xChannel_crop_resize(channel):
@@ -62,9 +68,34 @@ def crop_resize(datas,show_plot=False,feature=0):
         end = start+dim   
         return outdata[start:end]
     
-    datas_cr = apply_augm_xChannel(datas, _xChannel_crop_resize)
+    def _xChannel_crop_resize_FAST(channel):
+        outdata=[]
+        dim = channel.shape[0]    
+        
+        #selection of dim samples starting in a random point of the first half ot the window
+        start = random.randint(0, (dim/2)-1)
+        
+        #interpolation between odd values --> this generate a signal of 2*dim - 1 sample
+        for i in range( int(dim/2)):
+            if i==0:
+                outdata.append(channel[start])
+                start = start + 1
+                continue    
+            outdata.append( (channel[start]+ channel[start-1]) /2 )
+            outdata.append(channel[start])
+            if i==(int(dim/2)-1):
+                outdata.append( (channel[start] + channel[start+1] )/2)
+            start = start + 1
+    
+        return outdata
+    
+    #_xChannel_crop_resize(datas)
+    datas_cr = apply_augm_xChannel(datas, _xChannel_crop_resize_FAST)
     if show_plot:
         plot_data(datas[:,feature], datas_cr[:,feature]) 
+    
+    #print("--- Execution time : %s seconds ---" % (time.time() - start_time))
+
     return datas_cr
 
 # Applies random noise to the signal by adding or removing std * p values 
