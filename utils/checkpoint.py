@@ -75,31 +75,14 @@ class Checkpoint:
     
     def load_eval(self):
         save_file = os.path.join(self.save_dir+'/'+self.name, 'model_train_aug_'+self.name+'.pth')
-        print(f"save file {save_file}")
-        try:
-            with open(save_file, "rb") as f:
-                last_saved = f.read()
-                last_saved = last_saved.strip()
-        except IOError:
-            # if file doesn't exist, maybe because it has just been
-            # deleted by a separate process
-            last_saved = ""
+        #save_file = os.path.join(self.save_dir+'/'+self.name, 'model_baseline.pth')
         
-        checkpoint = self._load_file(last_saved)
-        model = self.model
-        model.load_state_dict(checkpoint.pop("model"))
+        checkpoint = self._load_file(save_file)
+        self.model.load_state_dict(checkpoint.pop("model"))
 
     def get_checkpoint_file(self):
         save_file = os.path.join(self.save_dir+'/'+self.name, self.last_checkpoint_name)
-        try:
-            with open(save_file, "r") as f:
-                last_saved = f.read()
-                last_saved = last_saved.strip()
-        except IOError:
-            # if file doesn't exist, maybe because it has just been
-            # deleted by a separate process
-            last_saved = ""
-        return last_saved
+        return save_file
 
     def has_checkpoint(self):
         save_file = os.path.join(self.save_dir+'/'+self.name, self.last_checkpoint_name)
