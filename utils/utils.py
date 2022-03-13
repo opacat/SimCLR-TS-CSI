@@ -23,12 +23,9 @@ def get_config_json(json_file):
 def normalize(train, test):
     mean = np.mean(train, axis=0)
     std = np.std(train, axis=0)
-    print(f"train BEFORE {train}")
     train = (train - mean) / std
     test = (test - mean) / std
         
-    print(f"train AFTER {train}")
-
     
 def build_TEP_dataset():
 
