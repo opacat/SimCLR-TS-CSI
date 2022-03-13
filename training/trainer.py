@@ -271,6 +271,8 @@ def baseline_train(config):
     model.train()
     for epoch in range(config['NET']['epochs']):
         for batchdata,labels in train_loader:
+            batchdata = batchdata.to(device)
+            labels = labels.to(device)
             out = model(batchdata, False)
             loss = criterion(out, labels)
             meters.update(loss=loss.item())
