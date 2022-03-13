@@ -292,5 +292,5 @@ def baseline_train(config):
         ))
         scheduler.step()
     
-    meters.plot_loss(config['name'])
+    meters.plot_loss('BASE')
     ckp.save('model_train_aug_BASE')
