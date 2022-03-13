@@ -17,8 +17,18 @@ import torch
             BatchNorm
         }
 '''
-# This is
 
+def initialize_weights(m):
+  if isinstance(m, nn.Conv1d):
+      nn.init.xavier_uniform_(m.weight.data)
+      if m.bias is not None:
+          nn.init.constant_(m.bias.data, 0)
+  elif isinstance(m, nn.BatchNorm1d):
+      nn.init.constant_(m.weight.data, 1)
+      nn.init.constant_(m.bias.data, 0)
+  elif isinstance(m, nn.Linear):
+      nn.init.xavier_uniform_(m.weight.data)
+      nn.init.constant_(m.bias.data, 0)
 
 class EncoderLayer(nn.Module):
 
@@ -30,6 +40,7 @@ class EncoderLayer(nn.Module):
             nn.ReLU(),
             nn.BatchNorm1d(out_ch, eps, momentum)
         )
+        self.encoder_layer.apply(initialize_weights)
 
     def forward(self, inputs):
         #print(self.name)
@@ -72,6 +83,7 @@ class SimCLR_TS(nn.Module):
         We use it to understand if multiple augmentation improve or not.
         '''
         self.cls_linear = nn.Linear(256*22, 22)  # for TEP there are 22 classes
+        self.cls_linear.apply(initialize_weights)
 
     def forward(self, inputs, pretrain=True):
         # print(inputs.type())
@@ -85,3 +97,5 @@ class SimCLR_TS(nn.Module):
             return self.cls_linear(features)
         else:
             return features
+    
+    
