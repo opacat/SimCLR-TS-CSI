@@ -28,7 +28,24 @@ Per creare i sample da dare in input alla rete, vengono create delle finestre di
 
 ##### Trasformazioni (Data Augmentations)
 
-TODO
+Sono state selezionate sei trasformazioni dal paper di (poppelbaum) in particolare le tre che forniscono l'accuratezza migliore e le tre peggiori. In questo modo costruiamo due set di trasformazioni che chiameremo Soft Augmentations ( che contiene le trasformazioni con accuratezza migliore ) e Hard Augmentations ( contiene le altre). 
+
+Soft Augmentations = { Left to Right, Crop Resize , Random Noise }
+
+Left to Right : Il segnale viene capovolto lungo l'asse verticale tramite una moltiplicazione per matrice antidiagonale.
+
+Crop Resize : Dal segnale originale si ottiene una copia dilatata nel tempo di un fattore 2, passando da un intervallo T ad uno 2T. I dati intermedi sono generati per interpolazione. Successivamente si campiona un istante nella prima metà del segnale generato(con periodo 2T) e si produce il segnale finale considerando i T istanti successivi. 
+Nota : Con questa procedura avevamo delle prestazioni molto basse e il training diventava troppo lungo. Per un singolo batch di 64 fineste si impiegavano 6 minuti e qualche secondo. Abbiamo cambiato il modo di generare il segnale aumentato scambiando i passi di campionamento e generazione dei seguenti T istanti. Cosi facendo otteniamo lo stesso risultato ma con una riduzione del 45% del tempo di esecuzione dato che i cicli da eseguire per generare il segnale sono stati dimezzati. Il tempo di esecuzione di un batch è passato da 6 minuti a 3min 15 sec circa.  
+
+Random Noise : Applica il rumore bianco al segnale aggiungendo (o sottraendo) la deviazione standard del segnale scalato da una variabile campionata da una distribuzione uniforme nel range (-1, 1).   
+
+Hard Augmentations : { Blockout , Magnitude Warping, Permute Channels }
+
+Blockout : Azzera una porzione del segnale a partire da un campione casuale.
+
+Magnitude Warping : Somma una funzione sinusoidale al segnale con possibilita di cambiare frequenza e modulo.
+
+Permute Channels : Permuta i canali del segnale.
 
 ##### Baseline
 
