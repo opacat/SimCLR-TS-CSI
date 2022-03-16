@@ -20,6 +20,13 @@ def get_config_json(json_file):
         _config = json.load(config)
     return _config
 
+def normalize(train, test):
+    mean = np.mean(train, axis=0)
+    std = np.std(train, axis=0)
+    train = (train - mean) / std
+    test = (test - mean) / std
+        
+    
 def build_TEP_dataset():
 
     # Load .dat files
@@ -68,6 +75,8 @@ def build_TEP_dataset():
     # read test files and get test labels
     test_dataset, test_sizes = _concat_files(is_training=False, postfix='_te')
     test_labels = _get_labels(test_sizes, test_dataset.shape[0])
+    
+    normalize(train_dataset,test_dataset)
 
     return train_dataset, train_labels, test_dataset, test_labels       
     

@@ -251,3 +251,46 @@ def cls_train(config):
         scheduler.step()
 
     ckp.save('model_train_aug_{}'.format( config['AUGMENTER']['soft_augm']))
+
+def baseline_train(config):
+    dataloader = Dataloader(config['NET'])
+    train_loader = dataloader.train_loader()
+    model = SimCLR_TS(config['NET']).to(device)
+    ckp = Checkpoint(name='BASE', model=model, save_dir='checkpoints')
+    
+    # Optimizer
+    optimizer = Adam(model.parameters(), lr=config['NET']['lr'])
+
+    # Scheduler
+    scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
+
+    # Linear loss criterion
+    criterion = nn.CrossEntropyLoss()
+    meters = MetricLogger()
+
+    model.train()
+    for epoch in range(config['NET']['epochs']):
+        for batchdata,labels in train_loader:
+            batchdata = batchdata.to(device)
+            labels = labels.to(device)
+            out = model(batchdata, False)
+            loss = criterion(out, labels)
+            meters.update(loss=loss.item())
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+        
+        log.info(meters.delimiter.join([
+            "epoch: {epoch:03d}",
+            "lr: {lr:.6f}",
+            '{meters}',
+        ]).format(
+            epoch=epoch,
+            lr=optimizer.param_groups[0]['lr'],
+            meters=str(meters),
+        ))
+        scheduler.step()
+    
+    meters.plot_loss('BASE')
+    ckp.save('model_train_aug_BASE')
