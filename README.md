@@ -24,7 +24,7 @@ Tutti dati vengono normalizzati prima dell'uso, usando la media e la varianza de
 
 ### Trasformazioni (Data Augmentations)
 
-<figure align = "center"><img src="images\trasformazioni.PNG" alt="Contrastive Learning" style="width:100%" ><figcaption align = "center"><p style="font-style: italic;">Fig.3 Trasformazioni proposte per SimCLR-TS. Noi abbiamo selezionato [b, c, d, e, g]. A queste si aggiunge la trasformazione 'permute channels' che non viene mostrata perché ha senso solo visualizzando tutti i canali.</p></figcaption></figure>
+<figure align = "center"><img src="images\trasformazioni.png" alt="Contrastive Learning" style="width:100%" ><figcaption align = "center"><p style="font-style: italic;">Fig.3 Trasformazioni proposte per SimCLR-TS. Noi abbiamo selezionato [b, c, d, e, g]. A queste si aggiunge la trasformazione 'permute channels' che non viene mostrata perché ha senso solo visualizzando tutti i canali.</p></figcaption></figure>
 
 Sono state selezionate sei trasformazioni dal paper di ([^1]) in particolare le tre che forniscono l'accuratezza migliore e le tre peggiori. In questo modo costruiamo due set di trasformazioni che chiameremo Soft Augmentations ( che contiene le trasformazioni con accuratezza migliore ) e Hard Augmentations ( contenente le altre). 
 
