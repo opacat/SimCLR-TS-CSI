@@ -70,7 +70,7 @@ Esempi di combinazioni :
 - **Singola Hard + Singola Soft** :
   is_hard_augm = True and is_multiple_augm = False → Come per il caso precedente ma si aggiunge un pezzo ovvero si applica una delle hard augmentation e a seguire una delle soft augmentation. Con questa configurazione si generano #HardAugm * #SoftAugm modelli.
 
-- **Singola Hard + Soft Multiple ** :<br>is_hard_augm = is_multiple_augm = True → Siamo nel caso piu complesso dove per ogni hard augmentation vengono applicate tutte le possibili disposizioni Dn,k delle soft augmentation  con k = 2 fino a n.
+- **Singola Hard + Soft Multiple** :<br>is_hard_augm = is_multiple_augm = True → Siamo nel caso piu complesso dove per ogni hard augmentation vengono applicate tutte le possibili disposizioni Dn,k delle soft augmentation  con k = 2 fino a n.
   Otteniamo #HardAugm * Dn,k  modelli. 
 
 In questo modo esploriamo tutte le possibili applicazioni delle augmentation in uno schema in cui l’ordine tra le hard e le soft viene sempre mantenuto. Inoltre analizziamo l’effetto a monte delle hard augmentation.<br>Il file "*augmenter.py*" contiene il codice per applicare le trasformazioni secondo la configurazione corrente.
