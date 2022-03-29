@@ -20,15 +20,20 @@ import torch
 
 def initialize_weights(m):
   if isinstance(m, nn.Conv1d):
-      nn.init.xavier_uniform_(m.weight.data)
+      #print('conv1d')
+      nn.init.kaiming_uniform_(m.weight.data, nonlinearity='relu')
       if m.bias is not None:
           nn.init.constant_(m.bias.data, 0)
   elif isinstance(m, nn.BatchNorm1d):
+      #print('batchnorm')
       nn.init.constant_(m.weight.data, 1)
       nn.init.constant_(m.bias.data, 0)
   elif isinstance(m, nn.Linear):
-      nn.init.xavier_uniform_(m.weight.data)
+      #print('linear')
+      nn.init.kaiming_normal_(m.weight.data, mode='fan_in')
       nn.init.constant_(m.bias.data, 0)
+  #else:
+      #print(f"else {m}")
 
 class EncoderLayer(nn.Module):
 
@@ -74,16 +79,23 @@ class SimCLR_TS(nn.Module):
         self.encoder = nn.Sequential(
             EncoderLayer(in_ch, 64, kernel_sz, strd, eps, momentum, 'enc1'),
             EncoderLayer(64, 128, kernel_sz2, strd2, eps, momentum, 'enc2'),
-            EncoderLayer(128, 256, kernel_sz3, strd3, eps, momentum, 'enc3')
+            EncoderLayer(128, 256, kernel_sz3, strd3, eps, momentum, 'enc3'),
         )
-
+        #self.avg_pool = nn.AvgPool1d(kernel_size=10, stride=1)
         #   Classification layer
         '''
         This classifier is used to measure augmentation accuracy on TEP Dataset.
         We use it to understand if multiple augmentation improve or not.
         '''
-        self.cls_linear = nn.Linear(256*22, 22)  # for TEP there are 22 classes
+        '''
+        self.cls_linear = nn.Linear(256*7, 22)  # for TEP there are 22 classes
+        '''
+        
+        self.cls_linear = nn.Sequential(
+            nn.Linear(256*22,22)
+        )
         self.cls_linear.apply(initialize_weights)
+
 
     def forward(self, inputs, pretrain=True):
         # print(inputs.type())
@@ -93,6 +105,9 @@ class SimCLR_TS(nn.Module):
 
         # this must be called only when Pretrain is complete
         if not pretrain:
+            #print(features.size())
+            #features = self.avg_pool(features)
+            #print(features.size())
             features = torch.flatten(features, start_dim=1)
             return self.cls_linear(features)
         else:

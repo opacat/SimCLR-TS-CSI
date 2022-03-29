@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from utils.utils import build_TEP_dataset
 
 class TimeseriesDataset(torch.utils.data.Dataset):
-    def __init__(self, X, y=None, seq_len=100):
+    def __init__(self, X, y=[], seq_len=100):
 
         self.X = torch.tensor(X.values)
         if y is not None:
@@ -26,7 +26,7 @@ class TimeseriesDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         start = index
         end = start + self.seq_len
-        if(self.y is not None):
+        if(len(self.y)>0):
             return self.X[start:end].transpose(1,0), self.y[end-1].squeeze()
         else:
             return self.X[start:end], []

@@ -252,25 +252,73 @@ def cls_train(config):
 
     ckp.save('model_train_aug_{}'.format( config['AUGMENTER']['soft_augm']))
 
+def local_eval(model,loader):
+  running_corrects = 0
+  tot_samples = 0
+  cur_label = 0
+  j = 0
+  for i,(batchdata, labels) in enumerate(loader):
+    '''if labels.data[0] == cur_label and j<2:
+      j += 1
+    else:
+      if j>1:
+        j = 0
+        cur_label += 1
+      continue'''
+    '''if i >0:
+      break'''
+    if (not all(l == 0 for l in labels.data)) and (not all(l == 1 for l in labels.data)) and (not all(l == 2 for l in labels.data)) and (not all(l == 3 for l in labels.data)) and (not all(l == 4 for l in labels.data)) and (not all(l == 5 for l in labels.data)) and (not all(l == 6 for l in labels.data)) and (not all(l == 7 for l in labels.data)) and (not all(l == 8 for l in labels.data)) and (not all(l == 9 for l in labels.data)) and (not all(l == 10 for l in labels.data)) and (not all(l == 11 for l in labels.data)) and (not all(l == 12 for l in labels.data)) and (not all(l == 13 for l in labels.data)) and (not all(l == 14 for l in labels.data)) and (not all(l == 15 for l in labels.data)) and (not all(l == 16 for l in labels.data)) and (not all(l == 17 for l in labels.data)) and (not all(l == 18 for l in labels.data)) and (not all(l == 19 for l in labels.data)) and (not all(l == 20 for l in labels.data)) and (not all(l == 21 for l in labels.data)):
+      continue
+    batchdata = batchdata.to(device)
+    labels = labels.to(device)
+    
+    cls_output = model(batchdata, False)
+    
+    # Get predictions
+    _, preds = torch.max(cls_output.data, dim=1)
+    running_corrects += torch.sum(preds == labels.data).data.item()
+    tot_samples += len(batchdata)
+  '''print(f"tot samples: {tot_samples}")
+  print(f"running_corrects {running_corrects}")'''
+  return running_corrects / float(tot_samples)
+
 def baseline_train(config):
     dataloader = Dataloader(config['NET'])
     train_loader = dataloader.train_loader()
     model = SimCLR_TS(config['NET']).to(device)
     ckp = Checkpoint(name='BASE', model=model, save_dir='checkpoints')
-    
+    #print(f"model parameters\n{list(model.parameters())}")
+    #print(model)
+    for name, param in model.named_parameters():
+      print(f"{name}, {param.data}")
+    return
     # Optimizer
-    optimizer = Adam(model.parameters(), lr=config['NET']['lr'])
+    optimizer = Adam(model.parameters(), lr=config['NET']['lr'], weight_decay=config['NET']['weight_decay'])
 
     # Scheduler
-    scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=100)
+    scheduler = lr_scheduler.StepLR(optimizer=optimizer, step_size=200)
 
     # Linear loss criterion
     criterion = nn.CrossEntropyLoss()
     meters = MetricLogger()
 
     model.train()
+    acc_list = []
     for epoch in range(config['NET']['epochs']):
-        for batchdata,labels in train_loader:
+        cur_label = 0
+        j=0        
+        for i,(batchdata,labels) in enumerate(train_loader):
+            '''if labels.data[0] == cur_label and j<2: # training e test sui primi 2 batch di ogni classe (2816 samples)
+              j += 1
+            else:
+              if j>1:
+                j = 0
+                cur_label += 1
+              continue'''
+            '''if i >0: # training e test su 1 batch
+              break'''
+            if (not all(l == 0 for l in labels.data)) and (not all(l == 1 for l in labels.data)) and (not all(l == 2 for l in labels.data)) and (not all(l == 3 for l in labels.data)) and (not all(l == 4 for l in labels.data)) and (not all(l == 5 for l in labels.data)) and (not all(l == 6 for l in labels.data)) and (not all(l == 7 for l in labels.data)) and (not all(l == 8 for l in labels.data)) and (not all(l == 9 for l in labels.data)) and (not all(l == 10 for l in labels.data)) and (not all(l == 11 for l in labels.data)) and (not all(l == 12 for l in labels.data)) and (not all(l == 13 for l in labels.data)) and (not all(l == 14 for l in labels.data)) and (not all(l == 15 for l in labels.data)) and (not all(l == 16 for l in labels.data)) and (not all(l == 17 for l in labels.data)) and (not all(l == 18 for l in labels.data)) and (not all(l == 19 for l in labels.data)) and (not all(l == 20 for l in labels.data)) and (not all(l == 21 for l in labels.data)):
+              continue
             batchdata = batchdata.to(device)
             labels = labels.to(device)
             out = model(batchdata, False)
@@ -281,16 +329,33 @@ def baseline_train(config):
             loss.backward()
             optimizer.step()
         
+        ''' local_acc = local_eval(model, train_loader)
+        print(f"local_acc : {local_acc}")
+        acc_list.append(local_acc)'''
+         
         log.info(meters.delimiter.join([
             "epoch: {epoch:03d}",
             "lr: {lr:.6f}",
+            "wd: {wd:.6f}",
             '{meters}',
         ]).format(
             epoch=epoch,
             lr=optimizer.param_groups[0]['lr'],
+            wd=optimizer.param_groups[0]['weight_decay'],
             meters=str(meters),
         ))
         scheduler.step()
+
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    timestamps = len(acc_list)
+    x = np.arange(timestamps)
+    ax = fig.add_subplot(111)
+    plt.plot(x,acc_list)
+    ax.set_xlim([0, timestamps])
+    
+    plt.savefig('plots/train_acc.png') 
+    plt.show()
     
     meters.plot_loss('BASE')
     ckp.save('model_train_aug_BASE')
