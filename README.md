@@ -18,7 +18,9 @@ La struttura della rete è la seguente:
 
 ### Dataset 
 
-I dati provengono dal dataset TEP [^3], una raccolta di dati temporali composti da 52 canali con anomalie annotate, suddivisi in training e test secondo quanto suggerito in ([^1]). Il dataset contiene 22 classi, la classe 0 corrisponde al comportamento corretto e le restanti classi da 1 a 21 corrispondono a diversi comportamenti anomali. Per le classi da 1 a 21 vengono forniti 480 campioni per canale come dati di training e 800 campioni come dati di test. Per la classe 0 vengono forniti 500 campioni di training e 960 campioni di test. In totale sono disponibili 10560 campioni per il training e 17760 campioni per il test. Entrambi i dataset sono costruiti in modo che le classi siano distribuite uniformemente e nessuna prevalga sulle altre. 
+I dati provengono dal dataset TEP [^3], una raccolta di dati temporali composti da 52 canali con anomalie annotate, suddivisi in training e test secondo quanto suggerito in ([^1]). Il dataset contiene 22 classi, la classe 0 corrisponde al comportamento corretto e le restanti classi da 1 a 21 corrispondono a diversi comportamenti anomali. I sample di ogni classe vengono ottenuti tramite campionamento dei parametri di un macchinario. Ogni classe corrisponde ad un insieme di parametri con cui viene avviato tale macchinario quindi i segnali di classi diverse non sono tra loro consecutivi (per es. la classe 0 viene ottenuta avviando la macchina con un certo set di parametri e campionando per N ore, la classe 1 viene ottenuta avviando la macchina con un set di parametri differente e campionando per altre N ore, e così via).
+
+Per le classi da 1 a 21 vengono forniti 480 campioni per canale come dati di training e 800 campioni come dati di test. Per la classe 0 vengono forniti 500 campioni di training e 960 campioni di test. In totale sono disponibili 10560 campioni per il training e 17760 campioni per il test. Entrambi i dataset sono costruiti in modo che le classi siano distribuite uniformemente e nessuna prevalga sulle altre. 
 
 Tutti dati vengono normalizzati prima dell'uso, usando la media e la varianza della porzione di training. Per creare i sample da dare in input alla rete, vengono create delle finestre di ampiezza T=100 contenenti T campioni consecutivi. Di conseguenza ogni segnale in input ha una dimensione 52xT. Viene usato un approccio di tipo sliding window quindi, dato un segnale $s$, il segnale successivo inizia da $s+1$. In tutto per ogni classe saranno disponibili 480-T segnali di training (500-T per la classe 0) e 800-T segnali di test (960-T per la classe 0).
 
@@ -27,10 +29,6 @@ Tutti dati vengono normalizzati prima dell'uso, usando la media e la varianza de
 <figure align = "center"><img src="images\trasformazioni.png" alt="Contrastive Learning" style="width:100%" ><figcaption align = "center"><p style="font-style: italic;">Fig.3 Trasformazioni proposte per SimCLR-TS. Noi abbiamo selezionato [b, c, d, e, g]. A queste si aggiunge la trasformazione 'permute channels' che non viene mostrata perché ha senso solo visualizzando tutti i canali.</p></figcaption></figure>
 
 Sono state selezionate sei trasformazioni dal paper di ([^1]) in particolare le tre che forniscono l'accuratezza migliore e le tre peggiori. In questo modo costruiamo due set di trasformazioni che chiameremo Soft Augmentations ( che contiene le trasformazioni con accuratezza migliore ) e Hard Augmentations ( contenente le altre). 
-
-
-
-
 
 **Soft Augmentations **= { Left to Right, Crop Resize , Random Noise }
 
@@ -83,9 +81,13 @@ Nel paper ([^1]) i risultati vengono confrontati con quelli ottenuti da un model
 
 Purtroppo i risultati che otteniamo da questo training sono molto lontani da quelli attesi. In ([^1]) si raggiunge un'accuratezza di circa 48% con la sola baseline, mentre noi otteniamo valori prossimi alla classificazione random (tra 0,5% e 0,7%). Come sanity check abbiamo cercato di mandare la rete in overfitting fornendo pochissimi dati di training (al massimo 20 batch da 64 sample) e testando sugli stessi dati. Ci saremmo aspettati un'accuratezza molto elevata, prossima al 100%, invece otteniamo valori che variano tra 30% e 50% in base a differenti configurazioni di learning rate e weight decay. Durante il training la loss scende correttamente con il giusto andamento ma evidentemente la rete non riesce ad estrarre correttamente le features. Abbiamo tentato diverse configurazioni degli iperparametri ma il risultato non cambia, pensiamo che possa esserci un grave problema di fondo ma non sappiamo come muoverci.
 
+
+
 <u>**AGGIORNAMENTO 18/3**</u>: 
 
 Prima di effettuare il test, il modello viene sempre impostato in modalità 'evaluation' tramite l'istruzione model.eval(). Quest'ultima agisce su vari livelli della rete, in particolare su BatchNorm1d. Abbiamo notato che rimuovendola l'accuratezza cambia drasticamente e finalmente il modello è in grado di andare in overfitting sul dataset di training (facendo lo stesso esperimento citato sopra). Anche l'accuratezza sul dataset di test sale parecchio, attorno al 22%, ma resta lontana dall'obiettivo del 48%. Quindi la media e la varianza calcolate da BatchNorm durante il training non rispecchiano i dati durante il test.
+
+Abbiamo trovato un altro problema: durante la costruzione del dataset, i sample vengono suddivisi in finestre di ampiezza T=100.  Questo viene fatto tramite le classi Dataloader e TimeseriesDataset. Inizialmente le finestre venivano costruite sulla concatenazione di tutti i 22 file di cui è composto il dataset. Così facendo vengono create anche delle finestre senza senso in cui la prima parte dei sample appartiene ad una classe e la seconda parte appartiene alla classe successiva. Poiché i segnali di classi diverse non sono consecutivi, questo non ha senso. Abbiamo quindi corretto il codice in modo che le finestre 'ibride' non vengano utilizzate. 
 
 <u>**AGGIORNAMENTO 24/3**</u>: 
 
