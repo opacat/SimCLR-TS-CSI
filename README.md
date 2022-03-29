@@ -79,7 +79,23 @@ In questo modo esploriamo tutte le possibili applicazioni delle augmentation in 
 
 Nel paper ([^1]) i risultati vengono confrontati con quelli ottenuti da un modello di baseline allenato in modo supervisionato. Per rendere paragonabili i risultati, il modello di baseline ha la stessa architettura del modello contrastive (3 livelli Conv1d - LeakyReLU - BatchNorm1d ) e viene allenato nella classificazione delle anomalie utilizzando una Cross Entropy Loss. Il training procede per 300 epoche.
 
-Purtroppo i risultati che otteniamo da questo training sono molto lontani da quelli attesi. In ([^1]) si raggiunge un'accuratezza di circa 55% con la sola baseline, mentre noi otteniamo valori prossimi alla classificazione random (tra 0,5% e 0,7%). Come sanity check abbiamo cercato di mandare la rete in overfitting fornendo pochissimi dati di training (al massimo 20 batch da 64 sample) e testando sugli stessi dati. Ci saremmo aspettati un'accuratezza molto elevata, prossima al 100%, invece otteniamo valori che variano tra 30% e 50% in base a differenti configurazioni di learning rate e weight decay. Durante il training la loss scende correttamente con il giusto andamento ma evidentemente la rete non riesce ad estrarre correttamente le features. Abbiamo tentato diverse configurazioni degli iperparametri ma il risultato non cambia, pensiamo che possa esserci un grave problema di fondo ma non sappiamo come muoverci.
+<figure align = "center"><img src="images\net_structure.png" alt="Contrastive Learning" style="width:80%" ><figcaption align = "center"><p style="font-style: italic;">Fig.4 Strutture della rete.</p></figcaption></figure>
+
+Purtroppo i risultati che otteniamo da questo training sono molto lontani da quelli attesi. In ([^1]) si raggiunge un'accuratezza di circa 48% con la sola baseline, mentre noi otteniamo valori prossimi alla classificazione random (tra 0,5% e 0,7%). Come sanity check abbiamo cercato di mandare la rete in overfitting fornendo pochissimi dati di training (al massimo 20 batch da 64 sample) e testando sugli stessi dati. Ci saremmo aspettati un'accuratezza molto elevata, prossima al 100%, invece otteniamo valori che variano tra 30% e 50% in base a differenti configurazioni di learning rate e weight decay. Durante il training la loss scende correttamente con il giusto andamento ma evidentemente la rete non riesce ad estrarre correttamente le features. Abbiamo tentato diverse configurazioni degli iperparametri ma il risultato non cambia, pensiamo che possa esserci un grave problema di fondo ma non sappiamo come muoverci.
+
+<u>**AGGIORNAMENTO 18/3**</u>: 
+
+Prima di effettuare il test, il modello viene sempre impostato in modalità 'evaluation' tramite l'istruzione model.eval(). Quest'ultima agisce su vari livelli della rete, in particolare su BatchNorm1d. Abbiamo notato che rimuovendola l'accuratezza cambia drasticamente e finalmente il modello è in grado di andare in overfitting sul dataset di training (facendo lo stesso esperimento citato sopra). Anche l'accuratezza sul dataset di test sale parecchio, attorno al 22%, ma resta lontana dall'obiettivo del 48%. Quindi la media e la varianza calcolate da BatchNorm durante il training non rispecchiano i dati durante il test.
+
+<u>**AGGIORNAMENTO 24/3**</u>: 
+
+Inizialmente ci siamo dimenticati di inizializzare i pesi della rete. Poi abbiamo aggiunto una funzione di inizializzazione che imposta i pesi dei vari livelli così:
+
+- livelli Conv1d : inizializzazione di kaiming uniforme, inizializzazione costante a 0 per i bias
+- livelli BatchNorm1d : inizializzazione costante a 1 per i pesi, a 0 per i bias
+- livelli Linear : inizializzazione di kaiming normale, inizializzazione costante a 0 per i bias
+
+Per cercare di raggiungere i risultati del paper abbiamo lanciato una random search su learning rate e weight decay dell'ottimizzatore (sono gli unici due parametri su cui gli autori sostengono di aver fatto tuning) ma i risultati variano tra 10% e 22%.
 
 ### Adattamento di CSI al modello
 

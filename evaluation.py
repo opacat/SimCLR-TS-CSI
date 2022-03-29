@@ -9,6 +9,7 @@ from models.simCLR_TS import SimCLR_TS
 from utils.checkpoint import Checkpoint
 from dataloader import Dataloader
 from utils.logger import logger_warmup
+from utils.utils import check_labels
 
 import logging
 import torch
@@ -21,13 +22,13 @@ log = logging.getLogger('Logger_')
 def evaluate(config):
     dataloader = Dataloader(config['NET'])
     test_loader = dataloader.test_loader()
-    
+
     with open('config/comb_list.txt') as f:
         model = SimCLR_TS(config['NET']).to(device)
         comb = f.readline()
         ckp = Checkpoint(name=comb, model=model, save_dir='checkpoints')
         ckp.load_eval()
-        
+
         #model.eval()
         running_corrects = 0
         tot_samples = 0
@@ -45,16 +46,16 @@ def evaluate(config):
               continue'''
             '''if i >0: # training e test su 1 batch
               break'''
-            if (not all(l == 0 for l in labels.data)) and (not all(l == 1 for l in labels.data)) and (not all(l == 2 for l in labels.data)) and (not all(l == 3 for l in labels.data)) and (not all(l == 4 for l in labels.data)) and (not all(l == 5 for l in labels.data)) and (not all(l == 6 for l in labels.data)) and (not all(l == 7 for l in labels.data)) and (not all(l == 8 for l in labels.data)) and (not all(l == 9 for l in labels.data)) and (not all(l == 10 for l in labels.data)) and (not all(l == 11 for l in labels.data)) and (not all(l == 12 for l in labels.data)) and (not all(l == 13 for l in labels.data)) and (not all(l == 14 for l in labels.data)) and (not all(l == 15 for l in labels.data)) and (not all(l == 16 for l in labels.data)) and (not all(l == 17 for l in labels.data)) and (not all(l == 18 for l in labels.data)) and (not all(l == 19 for l in labels.data)) and (not all(l == 20 for l in labels.data)) and (not all(l == 21 for l in labels.data)):
+            if not check_labels(labels):
               continue
             batchdata = batchdata.to(device)
             labels = labels.to(device)
-            
+
             cls_output = model(batchdata, False)
-            
+
             # Get predictions
             _, preds = torch.max(cls_output.data, dim=1)
-           
+
             #print(f"preds : {preds}")
             #print(f'labels : {labels.data}')
             #print(len(preds))

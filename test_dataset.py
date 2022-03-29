@@ -9,40 +9,19 @@ import logging
 
 logger_warmup('Logger_')
 log = logging.getLogger('Logger_')
-'''
-data = np.load('dataset/nyc_taxi.npz')
-train = data['training']
-train = np.expand_dims(train, axis=1)
-print(train.shape)
-'''
 
 config = {}
 config.update(NET=get_config_json('config/config_net.json'))
 config.update(AUGMENTER=get_config_json('config/config_augmenter.json'))
 
-'''
-# config aumenter in the proper way and then call the right training procedure
-if config['AUGMENTER']['is_multiple_augm']:
 
-    # ANALISING MULTIPLE SOFT AUGM.
+baseline_train(config) # training senza contrastive learning per replicare baseline
+#evaluate(config)      # evaluation su testset usando il modello di baseline
 
-    if config['AUGMENTER']['is_hard_augm']:
-        train_multiple_soft_augm_with_hard_augm(config)
-    else:
-        train_multiple_soft_augm(config)
 
-else:
-    # ANALISING SINGLE SOFT AUGM
-
-    if config['AUGMENTER']['is_hard_augm']:
-        train_single_soft_augm_with_hard_augm(config)
-    else:
-        train_single_soft_augm(config)
-'''
-baseline_train(config)
-#evaluate(config)
 '''
 #  RANDOM SEARCH
+
 random.seed(10)
 
 lr_values = [0.001]
@@ -68,4 +47,26 @@ for lr in range(10):
       best_wd = wd
 
 log.info(f"END : best accuracy {best_acc}, best lr {best_lr}, best wd {best_wd}")
+'''
+
+'''
+# PER TROVARE LA COMBINAZIONE MIGLIORE DI TRASFORMAZIONI
+
+# config aumenter in the proper way and then call the right training procedure
+if config['AUGMENTER']['is_multiple_augm']:
+
+    # ANALISING MULTIPLE SOFT AUGM.
+
+    if config['AUGMENTER']['is_hard_augm']:
+        train_multiple_soft_augm_with_hard_augm(config)
+    else:
+        train_multiple_soft_augm(config)
+
+else:
+    # ANALISING SINGLE SOFT AUGM
+
+    if config['AUGMENTER']['is_hard_augm']:
+        train_single_soft_augm_with_hard_augm(config)
+    else:
+        train_single_soft_augm(config)
 '''
