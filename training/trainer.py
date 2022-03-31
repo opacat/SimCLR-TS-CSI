@@ -343,7 +343,7 @@ def baseline_train(config):
     ax.set_xlim([0, timestamps])
 
     plt.savefig('plots/train_acc.png')
+    '''
 
     meters.plot_loss('BASE')
     ckp.save('model_train_aug_BASE')
-    '''
