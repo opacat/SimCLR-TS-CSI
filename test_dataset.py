@@ -16,7 +16,7 @@ config.update(AUGMENTER=get_config_json('config/config_augmenter.json'))
 
 
 baseline_train(config) # training senza contrastive learning per replicare baseline
-#evaluate(config)      # evaluation su testset usando il modello di baseline
+evaluate(config)      # evaluation su testset usando il modello di baseline
 
 
 '''
