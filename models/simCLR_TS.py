@@ -21,7 +21,7 @@ import torch
 def initialize_weights(m):
   if isinstance(m, nn.Conv1d):
       #print('conv1d')
-      nn.init.kaiming_uniform_(m.weight.data, nonlinearity='relu')
+      nn.init.kaiming_uniform_(m.weight.data, nonlinearity='leaky_relu')
       if m.bias is not None:
           nn.init.constant_(m.bias.data, 0)
   elif isinstance(m, nn.BatchNorm1d):
@@ -90,7 +90,7 @@ class SimCLR_TS(nn.Module):
         '''
         self.cls_linear = nn.Linear(256*7, 22)  # for TEP there are 22 classes
         '''
-        
+
         self.cls_linear = nn.Sequential(
             nn.Linear(256*22,22)
         )
@@ -101,6 +101,18 @@ class SimCLR_TS(nn.Module):
             nn.Linear(last_dim, simclr_dim),
         )
         '''
+        self.mlp = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(52*100, 2500),
+            nn.LeakyReLU(),
+            nn.Linear(2500, 1250),
+            nn.LeakyReLU(),
+            nn.Linear(1250, 500),
+            nn.LeakyReLU(),
+            nn.Linear(500, 22)
+            )
+        self.mlp.apply(initialize_weights)
+
         self.cls_linear.apply(initialize_weights)
 
 
@@ -108,6 +120,7 @@ class SimCLR_TS(nn.Module):
         # print(inputs.type())
         # print("forward SimCLR_TS")
 
+        return self.mlp(inputs)
         features = self.encoder(inputs)
 
         # this must be called only when Pretrain is complete
@@ -119,5 +132,4 @@ class SimCLR_TS(nn.Module):
             return self.cls_linear(features)
         else:
             return features
-    
-    
+
