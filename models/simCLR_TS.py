@@ -42,7 +42,7 @@ class EncoderLayer(nn.Module):
         self.name = name
         self.encoder_layer = nn.Sequential(
             nn.Conv1d(in_ch, out_ch, kernel_sz, strd),
-            nn.ReLU(),
+            nn.LeakyReLU(),
             nn.BatchNorm1d(out_ch, eps, momentum)
         )
         self.encoder_layer.apply(initialize_weights)
@@ -94,6 +94,13 @@ class SimCLR_TS(nn.Module):
         self.cls_linear = nn.Sequential(
             nn.Linear(256*22,22)
         )
+        '''
+        self.simclr_layer = nn.Sequential(
+            nn.Linear(last_dim, last_dim),
+            nn.ReLU(),
+            nn.Linear(last_dim, simclr_dim),
+        )
+        '''
         self.cls_linear.apply(initialize_weights)
 
 
