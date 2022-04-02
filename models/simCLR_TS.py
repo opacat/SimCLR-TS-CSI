@@ -42,8 +42,9 @@ class EncoderLayer(nn.Module):
         self.name = name
         self.encoder_layer = nn.Sequential(
             nn.Conv1d(in_ch, out_ch, kernel_sz, strd),
+            nn.BatchNorm1d(out_ch, eps, momentum),
             nn.LeakyReLU(),
-            nn.BatchNorm1d(out_ch, eps, momentum)
+            nn.AvgPool1d(kernel_size=5, stride=1)
         )
         self.encoder_layer.apply(initialize_weights)
 
@@ -120,7 +121,7 @@ class SimCLR_TS(nn.Module):
         # print(inputs.type())
         # print("forward SimCLR_TS")
 
-        return self.mlp(inputs)
+        #return self.mlp(inputs)
         features = self.encoder(inputs)
 
         # this must be called only when Pretrain is complete
