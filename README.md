@@ -1,5 +1,3 @@
-
-
 # SimCLR-TS-CSI
 
 Proponiamo un framework per il rilevamento delle anomalie su dati sequenziali, in particolare su serie temporali. Il modello viene allenato in modo self-supervised utilizzando il contrastive learning. La rete è costruita sulla base del paper ([^1]),in cui viene proposta un'implementazione del modello SimCLR adattata alle  serie temporali (SimCLR-TS), e del paper ([^2]), in cui viene proposta una variazione di SimCLR per migliorare la capacità della rete nel rilevamento delle anomalie. Il dataset utilizzato è TEP ed è lo stesso proposto nel paper ([^1]).
@@ -99,6 +97,33 @@ Inizialmente ci siamo dimenticati di inizializzare i pesi della rete. Poi abbiam
 
 Per cercare di raggiungere i risultati del paper abbiamo lanciato una random search su learning rate e weight decay dell'ottimizzatore (sono gli unici due parametri su cui gli autori sostengono di aver fatto tuning) ma i risultati variano tra 10% e 22%.
 
+<u>**AGGIORNAMENTO 30/3**</u>: 
+
+Come suggerito dal prof Cagliero abbiamo provato le seguenti modifiche alla rete: 
+
+- Anteporre una non linearita al livello  "linear" usato per classificare : Accuratezza peggiorata 
+
+- Aumentare la profondita del livello di classificazione come nel paper di SimCLR ( Linear, LeakyRelu,Linear ) : Accuratezza peggiorata 
+
+- Aumentare la profondita dell'Encoder aggiungendo un altro EncoderLayer ( composto da Conv1d, LeakyRelu, BatchNorm1d )  : Accuratezza peggiorata 
+
+- Abbiamo combinato i due punti precedenti ottenendo il valore peggiore dell'accuratezza ( 8% ).
+
+- MLP : Abbiamo costruito un MLP costituito da un livello Flatten seguito da un'alternanza di quattro coppie Linear, Leaky Relu e a seguire un'ultimo livello Linear che mappa sulle 22 classi di TEP dataset. 
+
+  Abbiamo ottenuto l'accuratezza migliore di tutte ( 24% ) che è superiore del 2% rispetto alla massima ottenuta replicando il paper.  Rimaniamo lontanissimi dal 48% del paper. 
+
+<u>**AGGIORNAMENTO 31/3**</u>: 
+
+Per l'ennesima volta abbiamo ricontrollato la parte di acquisizione  dei dati , stampando le finestre che vengono prese in input dal modello e abbiamo riscontrato una finestra che si muove di 1 timestamp per volta come da paper. Stampandole tutte e scorrendo tra le finestre , il movimento del segnale è quello che ci aspettavamo, ovvero un segnale che scorre da destra a sinistra . Abbiamo controllato anche le altre features e non ci sono dati letti male dal file.
+
+Abbiamo controllato la giusta disposizione del batch che viene preso in input dal modello , ovvero [#Batchsize , #features ,#WindowLength ].
+
+Abbiamo fatto altre prove cambiando il KernelSize dei vari livelli Conv1d ( 6, 6 ,6 ) e stride ( 2, 2, 1 )  oppure kernelSize (6,6,6) e stride(1,1,1) oppure kernelSize (8,8,6) e stride (1,1,1) ottenendo sempre un peggioramento dell'accuratezza ( 16% invece di 22%).
+
+**<u>AGGIORNAMENTO 2/4:</u>**
+
+Nel paper consigliato da Cagliero viene utilizzato un encoder molto simile al nostro, ci sono solo piccolissime differenze. Per questo abbiamo provato a modificare l'architettura di conseguenza: abbiamo invertito i livelli LeakyRelu e BatchNorm1d nell'encoder per cui la struttura ora è (Conv1d  -BatchNorm1d - LeakyRelu)x3. Inoltre abbiamo aggiunto un livello di AvgPooling1d (kernel=10, stride=1) sulle features estratte dall'encoder. Con questa configurazione l'accuratezza sale al 31,13% (lr=0.0007, wd=0.03).
 <u>**AGGIORNAMENTO 4/4**</u>: 
 
 Dato che non c'è stato progresso, il prof Cagliero ha suggerito un nuovo paper ( Mixup [^4]) da seguire. Leggendo il paper abbiamo notato che la struttura della rete è uguale a quella che volevamo riprodurre, ed è la stessa proposta da una nota baseline [^6]. L'unica differenza sta nell'ordine dei livelli. In particolare i livelli di BatchNorm1D e Relu sono scambiati. 
