@@ -99,6 +99,27 @@ Inizialmente ci siamo dimenticati di inizializzare i pesi della rete. Poi abbiam
 
 Per cercare di raggiungere i risultati del paper abbiamo lanciato una random search su learning rate e weight decay dell'ottimizzatore (sono gli unici due parametri su cui gli autori sostengono di aver fatto tuning) ma i risultati variano tra 10% e 22%.
 
+<u>**AGGIORNAMENTO 4/4**</u>: 
+
+Dato che non c'è stato progresso, il prof Cagliero ha suggerito un nuovo paper ( Mixup [^4]) da seguire. Leggendo il paper abbiamo notato che la struttura della rete è uguale a quella che volevamo riprodurre, ed è la stessa proposta da una nota baseline [^6]. L'unica differenza sta nell'ordine dei livelli. In particolare i livelli di BatchNorm1D e Relu sono scambiati. 
+
+Abbiamo ripreso la rete precedente e applicando questo piccolo cambiamento le performance sono salite dal 22% al 32%. Dato che il target era 48% abbiamo deciso di proseguire con altre prove. 
+
+#####  <u>AGGIORNAMENTO 12/4:</u>
+
+Dopo una settimana di prove alterando vari parametri della rete tra cui kernel size, stride , lr, wd non siamo riusciti a salire sopra il 35%. Inoltre appicando le trasformazioni sulle TS si ottiene sempre un peggioramento delle performance, contrariamente a quanto riportato sul paper [^1] .  
+
+#####  <u>AGGIORNAMENTO 21/4:</u>
+
+Abbiamo letto il paper di MixUp [^4] ed eseguito il codice ottenendo i risultati dichiarati. Successivamente abbiamo studiato il codice e abbiamo notato che la struttura della rete è equivalente al ciò che abbiamo sviluppato per il paper [^1].  L'unica differenza nella struttura della rete riguarda i parametri dilation e padding del livello Conv1d. Abbiamo provato a rieseguire il nostro codice con queste modifiche ma non c'è stato verso di ottenere un miglioramento. Altre differenze ovvie sono nella logica delle augmentations e nel calcolo della loss. 
+Da questo siamo certi di concludere che non sia stato possibile riprodurre il paper [^1] per via di una mancanza/ incoerenza del testo e non a causa di un nostro problema di implementazione.  Abbandoniamo definitivamente la rete in questione.
+
+#####  <u>AGGIORNAMENTO 23/4:</u>
+
+Abbiamo letto il paper TS2vec [^6] ed eseguito il codice ottenendo i risultati dichiarati. In questo paper vengono fatte alcune considerazioni interesssanti riguardo alle trasformazioni utilizzate per costruire le versioni aumentate delle TS. In particolare viene sottolineato come numerose trasformazioni vengano "ereditate" dal campo CV e che non siano appropriate per le TS in quanto si basano su assunzioni che non sono valide per le TS. Alcune di queste trasformazioni vengono utilizzate nel paper [^1].
+
+
+
 ### Adattamento di CSI al modello
 
 SimCLR-TS ([^1]) non mira al rilevamento delle anomalie e per questo scarta le trasformazioni che deteriorano l'accuratezza del classificatore. Ispirati dal lavoro di ([^2]), pensiamo che le trasformazioni dannose possano avere un effetto benefico se applicate in un contesto di anomaly detection in quanto dovrebbero aiutare il modello a distinguere meglio tra in-distribution e out-distribution. 
@@ -116,3 +137,6 @@ Il training dell'encoder procede per 400 epoche e costituisce una prima fase di 
 [^1]: Johannes Pöppelbaum, Gavneet Singh Chadha, Andreas Schwung,<br>Contrastive learning based self-supervised time-series analysis,<br> https://doi.org/10.1016/j.asoc.2021.108397
 [^2]: Jihoon Tack, Sangwoo Mo, Jongheon Jeong, Jinwoo Shin,<br>CSI: Novelty Detection via Contrastive Learning on Distributionally Shifted Instances,<br> https://doi.org/10.48550/arXiv.2007.08176
 [^3]: https://paperswithcode.com/dataset/tep
+[^4]: Mixing up contrastive learning: Self-supervised representation learning for time series<br>https://www.sciencedirect.com/science/article/pii/S0167865522000502
+[^5]:TS2Vec: Towards Universal Representation of Time Series<br>https://arxiv.org/pdf/2106.10466.pdf
+[^6]: Time Series Classification from Scratch with Deep Neural Networks: A Strong Baseline<br>https://arxiv.org/abs/1611.06455
